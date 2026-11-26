@@ -1,0 +1,2543 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f6fb">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title>Frame Studio — Creative image workspace</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --page: #f4f6fb;
+      --paper: #fff;
+      --ink: #20283a;
+      --muted: #657087;
+      --faint: #8993a6;
+      --line: #e1e6ef;
+      --purple: #6558d9;
+      --purple-dark: #5044c2;
+      --purple-pale: #efedff;
+      --pink: #f26a9a;
+      --orange: #f4a640;
+      --mint: #37bda3;
+      --blue: #5b9df5;
+      --shadow: 0 16px 45px #55458b12;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-width: 320px; min-height: 100vh; background: var(--page); color: var(--ink); }
+    button, input, select { font: inherit; }
+    button { color: inherit; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      display: flex;
+      height: 62px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 clamp(14px, 2vw, 28px);
+      background: linear-gradient(105deg, #08bfc1 0%, #298fe2 48%, #6748df 100%);
+      color: #fff;
+      box-shadow: 0 2px 12px #274f7b24;
+      backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand > span:last-child { display: flex; flex-direction: column; gap: 2px; }
+    .brand-mark {
+      display: grid;
+      width: 39px;
+      height: 39px;
+      place-items: center;
+      border-radius: 13px;
+      border: 1px solid #ffffff62;
+      background: #ffffff20;
+      box-shadow: none;
+    }
+    .brand-mark svg { width: 23px; height: 23px; }
+    .brand-name { font-size: 17px; font-weight: 760; letter-spacing: -.035em; }
+    .brand-name { color: #fff; }
+    .brand-caption { display: block; color: #e7f5ff; font-size: 9px; font-weight: 650; letter-spacing: .1em; }
+    .top-actions { display: flex; align-items: center; gap: 9px; }
+    .topbar .button { border-color: #ffffff55; background: #ffffff1b; color: #fff; box-shadow: none; }
+    .topbar .button:hover:not(:disabled) { background: #ffffff30; box-shadow: none; }
+    .topbar .button.primary { border-color: #fff; background: #fff; color: #5146bf; }
+    .topbar .button.primary:hover:not(:disabled) { background: #f5f4ff; }
+    .button {
+      display: inline-flex;
+      min-height: 39px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 0 14px;
+      border: 1px solid #e4e1ed;
+      border-radius: 9px;
+      background: var(--paper);
+      color: #4a4860;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 680;
+      transition: transform .15s, box-shadow .15s, background .15s;
+    }
+    .button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 16px #47396d15; }
+    .button:disabled { cursor: not-allowed; opacity: .46; }
+    .button svg { width: 15px; height: 15px; }
+    .button.primary { border-color: var(--purple); background: var(--purple); color: white; box-shadow: 0 5px 13px #7757f62b; }
+    .button.primary:hover:not(:disabled) { background: var(--purple-dark); }
+    .button.soft { border-color: #e8e2ff; background: var(--purple-pale); color: var(--purple-dark); }
+    .button.danger { border-color: #efc7c4; color: #a53934; }
+    .page { display: grid; width: 100%; height: calc(100vh - 62px); min-height: 0; grid-template-columns: 68px minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); margin: 0; padding: 0; overflow: hidden; }
+    .welcome {
+      position: relative;
+      display: flex;
+      min-height: 72px;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      overflow: hidden;
+      margin-bottom: 12px;
+      padding: 12px 18px;
+      border: 1px solid #ece6ff;
+      border-radius: 16px;
+      background: linear-gradient(110deg, #fff 2%, #fbfcff 54%, #f5f3ff 100%);
+      box-shadow: var(--shadow);
+    }
+    .welcome:after {
+      position: absolute;
+      top: -76px;
+      right: 16%;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #f8d7e8a8, #fff0 70%);
+      content: "";
+      pointer-events: none;
+    }
+    .eyebrow { margin: 0 0 4px; color: var(--purple); font-size: 10px; font-weight: 780; letter-spacing: .13em; }
+    h1 { margin: 0; font-size: clamp(20px, 2.3vw, 25px); font-weight: 700; letter-spacing: -.045em; }
+    .welcome p:last-child { margin: 4px 0 0; color: var(--muted); font-size: 12px; }
+    .summary { z-index: 1; display: flex; gap: 9px; }
+    .summary-chip { min-width: 91px; padding: 9px 12px; border: 1px solid #ebe7f2; border-radius: 10px; background: #ffffffc9; }
+    .summary-chip strong { display: block; font-size: 17px; font-weight: 720; line-height: 1.15; }
+    .summary-chip span { color: var(--muted); font-size: 10px; }
+    #imagePage { grid-column: 2; grid-row: 1; height: 100%; min-height: 0; min-width: 0; padding: 12px; overflow: hidden; }
+    #imagePage > .welcome { display: none; }
+    #documentPage { grid-column: 2; grid-row: 1; min-width: 0; padding: 18px; }
+    .workspace {
+      display: grid;
+      height: 100%;
+      min-height: 0;
+      grid-template-columns: minmax(265px, 310px) minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid #dfe4ec;
+      border-radius: 12px;
+      background: var(--paper);
+      box-shadow: 0 10px 34px #26355212;
+    }
+    .assets { display: flex; min-width: 0; min-height: 0; grid-column: 1; grid-row: 1; flex-direction: column; border-right: 1px solid var(--line); background: #fff; }
+    .assets-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 15px 10px; }
+    .assets-head h2, .inspector-head h2 { margin: 0; font-size: 14px; font-weight: 740; letter-spacing: -.01em; }
+    .assets-total { padding: 3px 7px; border-radius: 20px; background: #f4f1ff; color: var(--purple-dark); font-size: 9px; font-weight: 700; }
+    .search-wrap { padding: 0 12px 12px; }
+    .search {
+      width: 100%;
+      height: 33px;
+      padding: 0 10px;
+      border: 1px solid #ebe8f1;
+      border-radius: 8px;
+      outline: none;
+      background: #faf9fc;
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .search:focus, .field:focus, .select:focus { border-color: #a99af8; outline: 3px solid #9a84ff1e; }
+    .asset-list { display: grid; min-height: 0; flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: 7px; overflow: auto; padding: 0 10px 12px; }
+    .group { display: contents; }
+    .group-heading { display: flex; grid-column: 1 / -1; align-items: center; gap: 6px; margin: 8px 2px 2px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+    .group-heading h3 { margin: 0; color: #5e5b72; font-size: 11px; font-weight: 760; letter-spacing: .025em; }
+    .group-badge { margin-left: auto; color: var(--faint); font-size: 10px; }
+    .asset-card {
+      display: flex;
+      position: relative;
+      width: 100%;
+      min-width: 0;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 5px;
+      margin: 0;
+      padding: 7px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      text-align: left;
+      cursor: pointer;
+    }
+    .asset-card:hover { border-color: #c9c0f6; background: #faf9ff; }
+    .asset-card.selected { border-color: var(--purple); background: #f3efff; box-shadow: 0 0 0 2px #7757f624; }
+    .asset-card.marked-for-deletion { border-color: #e27878; background: #fff3f2; }
+    .asset-thumb { display: grid; width: 100%; height: 84px; place-items: center; overflow: hidden; border-radius: 7px; background: repeating-conic-gradient(#eeedf2 0% 25%, #fff 0% 50%) 50% / 12px 12px; color: var(--muted); font-size: 11px; }
+    .asset-thumb img { display: block; width: 100%; height: 100%; object-fit: contain; }
+    .asset-meta { min-width: 0; }
+    .asset-name { display: -webkit-box; overflow: hidden; color: #403e53; font-size: 12px; font-weight: 640; line-height: 1.3; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .asset-size { display: block; margin-top: 3px; color: var(--faint); font-size: 11px; }
+    .canvas-panel { position: relative; display: flex; min-width: 0; grid-column: 2; grid-row: 1; flex-direction: column; padding: 16px 20px; background: #f1f3f7; }
+    .canvas-head { display: flex; width: fit-content; max-width: 100%; min-height: 54px; align-self: center; align-items: center; justify-content: space-between; gap: 12px; margin: 0 auto 13px; padding: 7px 10px 7px 14px; border: 1px solid #e0e4eb; border-radius: 12px; background: #fff; box-shadow: 0 5px 16px #24324912; }
+    .canvas-title { min-width: 0; }
+    .canvas-title strong { display: block; overflow: hidden; font-size: 14px; font-weight: 720; text-overflow: ellipsis; white-space: nowrap; }
+    .canvas-title span { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+    .canvas-head-right { display: flex; align-items: center; gap: 7px; }
+    .canvas-hint-label { color: var(--muted); font-size: 12px; }
+    .comparison-view { display: grid; min-width: 0; min-height: 0; flex: 1; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .canvas-stage {
+      display: flex;
+      min-width: 0;
+      min-height: 0;
+      flex: 1;
+      flex-direction: column;
+      align-items: stretch;
+      overflow: hidden;
+      padding: 10px;
+      border: 1px solid #e0e4eb;
+      border-radius: 12px;
+      background: #e9ecf2;
+    }
+    .canvas-stage.empty-stage { display: grid; place-items: center; padding: 0; }
+    .compare-label { flex: 0 0 auto; color: #647087; font-size: 10px; font-weight: 780; letter-spacing: .1em; }
+    #editCanvas { display: block; max-width: min(100%, 1100px); max-height: none; margin: auto; border-radius: 2px; background: #fff; box-shadow: 0 7px 24px #26355224; touch-action: none; cursor: crosshair; }
+    .canvas-empty { max-width: 330px; padding: 24px; text-align: center; }
+    .empty-art { display: grid; width: 70px; height: 70px; place-items: center; margin: 0 auto 15px; border: 1px solid #e5dcff; border-radius: 22px; background: linear-gradient(145deg, #f0ebff, #fff0f6); color: var(--purple); }
+    .empty-art svg { width: 31px; height: 31px; }
+    .canvas-empty h2 { margin: 0 0 7px; font-size: 15px; }
+    .canvas-empty p { margin: 0 0 16px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .canvas-help { display: flex; min-height: 30px; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 10px; padding: 7px 2px 0; color: #656f82; font-size: 12px; }
+    .canvas-help span:first-child { display: flex; align-items: center; gap: 7px; font-weight: 650; }
+    .canvas-help span:first-child:before { width: 7px; height: 7px; flex: 0 0 auto; border-radius: 50%; background: var(--purple); content: ""; }
+    .result-preview { display: flex; min-width: 0; min-height: 0; flex-direction: column; padding: 10px; border: 1px solid #d5f1e9; border-radius: 12px; background: #f3fffb; }
+    .result-preview.visible { display: flex; }
+    .result-label { flex: 0 0 auto; color: #26866e; font-size: 10px; font-weight: 780; letter-spacing: .1em; }
+    .result-preview img { display: block; width: 100%; height: 100%; min-height: 0; flex: 1; margin: 7px auto 0; object-fit: contain; }
+    .result-preview img[hidden] { display: none; }
+    .result-placeholder { display: grid; min-height: 0; flex: 1; align-content: center; justify-items: center; gap: 9px; padding: 18px; color: var(--muted); text-align: center; }
+    .result-placeholder svg { width: 42px; height: 42px; color: #6da995; }
+    .result-placeholder strong { color: var(--ink); font-size: 13px; }
+    .result-placeholder span { max-width: 230px; font-size: 11px; line-height: 1.5; }
+    .result-placeholder[hidden] { display: none; }
+    .result-message { min-height: 14px; margin-top: 5px; color: #638477; font-size: 10px; text-align: center; overflow-wrap: anywhere; }
+    .inspector { display: flex; min-width: 0; min-height: 0; height: 100%; grid-column: 1; grid-row: 1; flex-direction: column; overflow: hidden; border-right: 1px solid var(--line); background: #fff; }
+    .inspector-head { display: flex; align-items: center; justify-content: space-between; padding: 17px 15px 14px; border-bottom: 1px solid var(--line); }
+    .inspector-head span { color: var(--muted); font-size: 9px; }
+    .settings { min-height: 0; flex: 1 1 0; overflow: auto; padding: 5px 15px 15px; }
+    .setting-section { padding: 14px 0; border-bottom: 1px solid #f0edf4; }
+    .setting-title { display: flex; align-items: center; gap: 7px; margin: 0 0 11px; font-size: 13px; font-weight: 750; }
+    .setting-dot { width: 7px; height: 7px; border-radius: 3px; background: var(--pink); }
+    .setting-section:nth-child(2) .setting-dot { background: var(--blue); }
+    .setting-section:nth-child(3) .setting-dot { background: var(--orange); }
+    .field-label { display: block; margin: 0 0 5px; color: var(--muted); font-size: 12px; }
+    .field, .select {
+      width: 100%;
+      height: 32px;
+      padding: 0 8px;
+      border: 1px solid #e7e4ed;
+      border-radius: 7px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .aspect-row { display: none; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 8px; }
+    .aspect-row.visible { display: grid; }
+    .check-row { display: flex; align-items: center; gap: 7px; margin-top: 9px; color: #625f76; font-size: 11px; }
+    .check-row input, .ai-toggle input { accent-color: var(--purple); }
+    .quality-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .quality-row input { width: 100%; accent-color: var(--pink); }
+    .quality-value { width: 26px; color: var(--muted); font-size: 9px; text-align: right; }
+    .adjustment-control { display: grid; gap: 4px; margin-top: 10px; }
+    .adjustment-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .adjustment-head .field-label { margin: 0; }
+    .adjustment-value { color: var(--muted); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .adjustment-range { width: 100%; margin: 0; accent-color: var(--purple); }
+    .adjustment-reset { width: 100%; margin-top: 9px; }
+    .ai-toggle { display: flex; gap: 8px; margin: 13px 0 0; padding: 10px; border: 1px solid #e6ddff; border-radius: 9px; background: linear-gradient(110deg, #f6f1ff, #fff4f8); }
+    .ai-toggle input { margin-top: 2px; }
+    .ai-toggle strong { display: block; color: #49359f; font-size: 11px; }
+    .ai-toggle small { display: block; margin-top: 4px; color: #81799e; font-size: 10px; line-height: 1.5; }
+    .inspector-foot { display: grid; flex: 0 0 auto; gap: 7px; padding: 10px 15px 12px; border-top: 1px solid var(--line); background: #fff; }
+    .inspector-foot .button { width: 100%; }
+    .edit-status { min-height: 14px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .status-line { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 11px; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); }
+    .hidden-input { display: none; }
+    .view-tabs { position: sticky; top: 62px; z-index: 3; display: flex; height: calc(100vh - 62px); grid-column: 1; grid-row: 1; flex-direction: column; align-items: stretch; gap: 7px; overflow-y: auto; padding: 12px 6px; border-right: 1px solid #e0e5ed; background: #fff; }
+    .view-tab { position: relative; display: flex; min-height: 66px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 6px 3px; border: 0; border-radius: 10px; background: transparent; color: #68748a; cursor: pointer; font-size: 10px; font-weight: 660; line-height: 1.15; text-align: center; }
+    .view-tab svg { width: 21px; height: 21px; }
+    .view-tab:hover { background: #f4f6fb; }
+    .view-tab.active { background: #eaf6ff; color: #2469b0; }
+    .rail-label { max-width: 60px; }
+    .rail-count { position: absolute; top: 4px; right: 3px; min-width: 16px; padding: 2px 4px; border-radius: 9px; background: #eef0f5; color: #58647b; font-size: 9px; line-height: 1; }
+    .view-tab.active .rail-count { background: #d7edff; color: #2469b0; }
+    .document-workspace { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr); gap: 14px; }
+    .document-card { padding: 22px; border: 1px solid #e8e5f0; border-radius: 15px; background: #fff; box-shadow: var(--shadow); }
+    .document-card h2 { margin: 0 0 8px; font-size: 15px; }
+    .document-card p { color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .document-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; margin: 18px 0 10px; }
+    .document-controls .button { min-height: 34px; }
+    .document-name { min-height: 44px; overflow: hidden; margin: 12px 0; padding: 12px; border: 1px solid var(--line); border-radius: 9px; background: #f7f8fb; color: var(--ink); font-size: 13px; font-weight: 650; line-height: 1.45; overflow-wrap: anywhere; }
+    .document-name.empty { color: var(--muted); font-weight: 450; }
+    .document-status { min-height: 20px; margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .document-note { padding: 11px 13px; border: 1px solid #ece6ff; border-radius: 9px; background: #faf8ff; }
+    .document-note strong { color: #49359f; }
+    #guidePage { grid-column: 2; grid-row: 1; min-width: 0; height: calc(100vh - 62px); overflow: auto; padding: 22px; }
+    .guide-shell { display: grid; max-width: 1180px; gap: 18px; margin: 0 auto; }
+    .guide-hero { display: grid; min-height: 240px; grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr); align-items: center; gap: 20px; overflow: hidden; padding: 25px 30px; border: 1px solid #e6e2fb; border-radius: 18px; background: linear-gradient(115deg, #fff 0%, #f8f6ff 56%, #f0fbff 100%); box-shadow: var(--shadow); }
+    .guide-hero h1 { max-width: 520px; margin: 0; font-size: clamp(26px, 3vw, 38px); line-height: 1.08; letter-spacing: -.05em; }
+    .guide-hero p:last-of-type { max-width: 520px; color: var(--muted); font-size: 14px; line-height: 1.6; }
+    .guide-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .guide-visual { width: 100%; max-height: 250px; }
+    .guide-section-title { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 2px 2px 0; }
+    .guide-section-title h2 { margin: 0; font-size: 19px; letter-spacing: -.03em; }
+    .guide-section-title p { margin: 0; color: var(--muted); font-size: 12px; }
+    .guide-steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .guide-step { min-width: 0; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); box-shadow: 0 5px 18px #2635520a; }
+    .guide-step-icon { display: grid; width: 38px; height: 38px; place-items: center; margin-bottom: 12px; border-radius: 12px; background: #f0edff; color: #6558d9; }
+    .guide-step-icon svg { width: 21px; height: 21px; }
+    .guide-step:nth-child(2) .guide-step-icon { background: #e7f8f5; color: #16816e; }
+    .guide-step:nth-child(3) .guide-step-icon { background: #fff0e8; color: #c26a32; }
+    .guide-step:nth-child(4) .guide-step-icon { background: #eaf3ff; color: #397cc1; }
+    .guide-step h3 { margin: 0 0 7px; font-size: 14px; }
+    .guide-step p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .guide-detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+    .guide-detail-card { padding: 17px 19px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+    .guide-detail-card h3 { margin: 0 0 8px; font-size: 14px; }
+    .guide-detail-card p, .guide-detail-card li { color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .guide-detail-card ul { margin: 0; padding-left: 18px; }
+    .guide-highlight { border-color: #d6efe8; background: linear-gradient(110deg, #f1fffb, #f8fbff); }
+    .library-tools { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 10px; }
+    .library-tools .button { min-height: 32px; padding: 0 9px; font-size: 10px; }
+    .library-hint { margin: 0; padding: 0 10px 9px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .library-empty-state { display: grid; grid-column: 1 / -1; justify-items: center; gap: 8px; margin: 12px 8px; padding: 22px 16px; border: 1px dashed var(--line); border-radius: 12px; background: var(--paper); text-align: center; }
+    .library-empty-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: #f0edff; color: var(--purple-dark); font-size: 20px; font-weight: 750; }
+    .library-empty-state strong { color: var(--ink); font-size: 12px; }
+    .library-empty-state p { max-width: 230px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .library-empty-state .button { min-height: 30px; margin-top: 3px; padding: 0 10px; font-size: 10px; }
+    :root[data-theme="dark"] .library-empty-icon { background: #302d49; color: #c3b9ff; }
+    .delete-mark { display: block; margin-top: 3px; color: #a53934; font-size: 10px; font-weight: 700; }
+    .download-mark { display: block; margin-top: 3px; color: #16816e; font-size: 10px; font-weight: 700; }
+    .asset-card.selected-for-download { border-color: #25a68e; background: #effcf8; box-shadow: 0 0 0 2px #25a68e24; }
+    .selection-indicator { position: absolute; top: 10px; right: 10px; display: grid; width: 20px; height: 20px; place-items: center; border: 1.5px solid #fff; border-radius: 50%; background: #ffffffdf; box-shadow: 0 1px 5px #1a233444; }
+    .selection-indicator:after { width: 5px; height: 9px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; content: ""; transform: rotate(45deg) scale(0); }
+    .selection-indicator.selected { border-color: var(--purple); background: var(--purple); }
+    .selection-indicator.selected:after { transform: rotate(45deg) scale(1); }
+    .asset-card.selecting-images { cursor: pointer; }
+    .auth-shell { display: grid; min-height: 100vh; place-items: center; padding: 24px; background: radial-gradient(ellipse at 15% 10%, #eceaff 0, transparent 38%), var(--page); }
+    .auth-card { width: min(440px, 100%); padding: 34px; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 24px 70px #1c274014; }
+    .auth-card h1 { margin: 18px 0 7px; font-size: 26px; }
+    .auth-card p { color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .auth-brand { display: flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 750; }
+    .auth-brand .brand-mark { border: 0; background: linear-gradient(140deg, #8365ff 6%, #ac67ef 56%, #f06fa7 100%); box-shadow: 0 7px 17px #8461ec38; }
+    .auth-form { display: grid; gap: 12px; margin-top: 22px; }
+    .auth-form label { display: grid; gap: 6px; color: #444e63; font-size: 12px; font-weight: 650; }
+    .auth-form input { width: 100%; height: 42px; padding: 0 12px; border: 1px solid #dfe4ed; border-radius: 9px; background: #fff; color: var(--ink); font-size: 14px; }
+    .auth-form input:focus { border-color: #aaa1ef; outline: 3px solid #6558d91c; }
+    .auth-form button { min-height: 43px; margin-top: 5px; }
+    .auth-status { min-height: 18px; margin: 13px 0 0; color: #aa3434 !important; font-size: 12px !important; }
+    .auth-status.notice { color: var(--muted) !important; }
+    .auth-privacy { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--faint) !important; font-size: 11px !important; }
+    .auth-link { display: block; margin: 12px auto 0; padding: 3px 6px; border: 0; background: transparent; color: var(--purple-dark); cursor: pointer; font-size: 12px; font-weight: 700; }
+    .auth-link:hover { text-decoration: underline; }
+    .account-dialog { width: min(650px, calc(100vw - 28px)); max-height: min(90vh, 850px); overflow: auto; padding: 0; border: 1px solid var(--line); border-radius: 16px; background: #fff; color: var(--ink); box-shadow: 0 24px 70px #1c274044; }
+    .account-dialog::backdrop { background: #1d2434a6; backdrop-filter: blur(3px); }
+    .account-header { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 17px 20px; border-bottom: 1px solid var(--line); background: #fff; }
+    .account-header h2 { margin: 0; font-size: 17px; }
+    .account-section { padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .account-section .account-footer { padding: 14px 0 0; }
+    #recoveryCodeBlock .account-footer { padding-top: 10px; }
+    .account-section h3 { margin: 0 0 6px; font-size: 13px; }
+    .account-section > p { margin: 0 0 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+    .account-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    .account-grid label { display: grid; gap: 5px; color: var(--muted); font-size: 11px; font-weight: 650; }
+    .account-grid input { width: 100%; height: 36px; padding: 0 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--ink); font-size: 12px; }
+    .account-grid input:focus { border-color: #a99af8; outline: 3px solid #9a84ff1e; }
+    .account-status { min-height: 17px; margin: 10px 0 0 !important; color: var(--muted); font-size: 11px !important; }
+    .account-footer { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; }
+    .account-note { grid-column: 1 / -1; margin: 0 !important; padding: 9px 10px; border-radius: 8px; background: #f7f8fb; color: var(--muted); font-size: 10px !important; }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --page: #111621;
+      --paper: #1b2331;
+      --ink: #edf1f8;
+      --muted: #aab4c6;
+      --faint: #8490a4;
+      --line: #354052;
+      --purple-pale: #2a2746;
+      --purple-dark: #beb3ff;
+      --shadow: 0 16px 45px #00000038;
+    }
+    :root[data-theme="dark"] body { background: var(--page); }
+    :root[data-theme="dark"] .welcome,
+    :root[data-theme="dark"] .guide-hero { border-color: #343c52; background: linear-gradient(115deg, #1a2231, #25223c 58%, #1c2a38); }
+    :root[data-theme="dark"] .summary-chip,
+    :root[data-theme="dark"] .canvas-head,
+    :root[data-theme="dark"] .assets,
+    :root[data-theme="dark"] .inspector,
+    :root[data-theme="dark"] .document-card,
+    :root[data-theme="dark"] .guide-step,
+    :root[data-theme="dark"] .guide-detail-card,
+    :root[data-theme="dark"] .account-dialog,
+    :root[data-theme="dark"] .auth-card { border-color: var(--line); background: var(--paper); color: var(--ink); }
+    :root[data-theme="dark"] .workspace { border-color: var(--line); background: var(--paper); }
+    :root[data-theme="dark"] .view-tabs { border-color: var(--line); background: #171e2b; }
+    :root[data-theme="dark"] .view-tab { color: #b7c0d0; }
+    :root[data-theme="dark"] .view-tab:hover { background: #252e3d; }
+    :root[data-theme="dark"] .view-tab.active { background: #233750; color: #a8d7ff; }
+    :root[data-theme="dark"] .view-tab.active .rail-count { background: #304966; color: #c6e4ff; }
+    :root[data-theme="dark"] .rail-count { background: #2a3342; color: #c4ccda; }
+    :root[data-theme="dark"] .asset-card,
+    :root[data-theme="dark"] .button:not(.primary):not(.soft),
+    :root[data-theme="dark"] .search,
+    :root[data-theme="dark"] .field,
+    :root[data-theme="dark"] .select,
+    :root[data-theme="dark"] .account-grid input,
+    :root[data-theme="dark"] .auth-form input { border-color: #3a4659; background: #202a39; color: var(--ink); }
+    :root[data-theme="dark"] .asset-card:hover { border-color: #8376dd; background: #272a3b; }
+    :root[data-theme="dark"] .asset-card.selected { background: #302c4a; }
+    :root[data-theme="dark"] .asset-card.selected-for-download { background: #1d3839; }
+    :root[data-theme="dark"] .asset-card.marked-for-deletion { background: #422b31; }
+    :root[data-theme="dark"] .asset-name,
+    :root[data-theme="dark"] .group-heading h3,
+    :root[data-theme="dark"] .canvas-title strong,
+    :root[data-theme="dark"] .assets-head h2,
+    :root[data-theme="dark"] .inspector-head h2,
+    :root[data-theme="dark"] .document-card h2,
+    :root[data-theme="dark"] .account-section h3 { color: var(--ink); }
+    :root[data-theme="dark"] .canvas-panel { background: #171e2a; }
+    :root[data-theme="dark"] .canvas-stage { border-color: #3a4659; background: #121823; }
+    :root[data-theme="dark"] .canvas-empty .empty-art { border-color: #45405f; background: linear-gradient(145deg, #302a48, #3c293e); }
+    :root[data-theme="dark"] .canvas-help { color: #bcc5d4; }
+    :root[data-theme="dark"] .result-preview { border-color: #385851; background: #1b302e; }
+    :root[data-theme="dark"] .result-label { color: #8dd8bd; }
+    :root[data-theme="dark"] .result-message { color: #b0c9c1; }
+    :root[data-theme="dark"] .search-wrap,
+    :root[data-theme="dark"] .assets-head,
+    :root[data-theme="dark"] .inspector-head { border-color: var(--line); }
+    :root[data-theme="dark"] .document-name,
+    :root[data-theme="dark"] .account-note { border-color: var(--line); background: #222b3a; color: var(--muted); }
+    :root[data-theme="dark"] .document-note,
+    :root[data-theme="dark"] .guide-highlight { border-color: #38534d; background: #1d302d; }
+    :root[data-theme="dark"] .document-note strong { color: #bdb1ff; }
+    :root[data-theme="dark"] .ai-toggle { border-color: #51416c; background: linear-gradient(110deg, #29253f, #36283b); }
+    :root[data-theme="dark"] .ai-toggle strong { color: #d0c6ff; }
+    :root[data-theme="dark"] .ai-toggle small { color: #b5aacd; }
+    :root[data-theme="dark"] .button.soft { border-color: #45405f; background: #302c4a; color: #d4ccff; }
+    :root[data-theme="dark"] .button.danger { border-color: #71444a; color: #ffc0c1; }
+    :root[data-theme="dark"] .topbar .button:not(.primary):not(.soft) { border-color: #ffffff55; background: #ffffff1b; color: #fff; }
+    :root[data-theme="dark"] .topbar .button.soft { border-color: #ffffff55; background: #ffffff1b; color: #fff; }
+    :root[data-theme="dark"] .topbar .button:hover:not(:disabled) { background: #ffffff30; }
+    :root[data-theme="dark"] .auth-shell { background: radial-gradient(ellipse at 15% 10%, #302744 0, transparent 38%), var(--page); }
+    :root[data-theme="dark"] .auth-privacy { border-color: var(--line); }
+    :root[data-theme="dark"] .account-header { border-color: var(--line); background: var(--paper); }
+    :root[data-theme="dark"] .account-section { border-color: var(--line); }
+    :root[data-theme="dark"] .guide-step-icon { background: #302c4a; color: #c1b6ff; }
+    :root[data-theme="dark"] .guide-step:nth-child(2) .guide-step-icon { background: #203a38; color: #8be0c9; }
+    :root[data-theme="dark"] .guide-step:nth-child(3) .guide-step-icon { background: #45342d; color: #ffba89; }
+    :root[data-theme="dark"] .guide-step:nth-child(4) .guide-step-icon { background: #233750; color: #a8d7ff; }
+    @media (max-width: 1050px) {
+      .workspace { grid-template-columns: minmax(250px, 285px) minmax(0, 1fr); }
+      .canvas-panel { padding: 13px; }
+      .settings { padding-right: 11px; padding-left: 11px; }
+    }
+    @media (max-width: 960px) {
+      .topbar { height: auto; min-height: 62px; flex-wrap: wrap; row-gap: 7px; padding-top: 8px; padding-bottom: 8px; }
+      .page { height: calc(100vh - 102px); }
+      .top-actions { order: 3; width: 100%; justify-content: flex-start; }
+      #logoutButton { margin-left: auto; }
+      .view-tabs { top: 102px; height: calc(100vh - 102px); }
+      #imagePage { height: 100%; }
+      #guidePage { height: calc(100vh - 102px); }
+    }
+    @media (max-width: 800px) {
+      .topbar { height: auto; min-height: 62px; flex-wrap: wrap; padding-top: 8px; padding-bottom: 8px; }
+      .brand-caption { display: none; }
+      .top-actions { gap: 5px; flex-wrap: nowrap; overflow-x: auto; }
+      .top-actions .button { min-height: 34px; flex: 0 0 auto; padding: 0 9px; font-size: 10px; }
+      .top-actions .button svg { display: none; }
+      .page { height: calc(100vh - 102px); grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+      .view-tabs { position: sticky; top: 102px; width: 100%; height: auto; min-height: 62px; grid-column: 1; grid-row: 1; flex-direction: row; justify-content: space-around; gap: 4px; overflow-x: auto; overflow-y: hidden; padding: 5px 8px; border-right: 0; border-bottom: 1px solid #e0e5ed; }
+      .view-tab { min-width: 68px; min-height: 52px; flex: 1; gap: 3px; font-size: 9px; }
+      .view-tab svg { width: 18px; height: 18px; }
+      .rail-count { top: 1px; right: 2px; }
+      #imagePage, #documentPage { grid-column: 1; grid-row: 2; }
+      #guidePage { grid-column: 1; grid-row: 2; height: calc(100vh - 164px); padding: 10px; }
+      #imagePage { height: calc(100vh - 164px); min-height: 0; padding: 10px; }
+      #documentPage { padding: 12px; }
+      .workspace { height: 100%; min-height: 0; grid-template-columns: minmax(0, 1fr); grid-template-rows: 230px minmax(0, 1fr); overflow: hidden; }
+      .assets, .inspector { height: auto; grid-column: 1; grid-row: 1; border-right: 0; border-bottom: 1px solid var(--line); }
+      .asset-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(125px, 1fr)); align-content: start; overflow: auto; }
+      .group { display: contents; }
+      .canvas-panel { min-height: 0; grid-column: 1; grid-row: 2; }
+      .canvas-stage { min-height: 0; }
+      #editCanvas { max-height: 100%; }
+      .workspace.editor-first { grid-template-rows: minmax(0, 1fr) 220px; }
+      .workspace.editor-first .canvas-panel { grid-row: 1; }
+      .workspace.editor-first .inspector { grid-row: 2; }
+      .settings { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+      .ai-toggle { align-self: start; }
+      .document-workspace { grid-template-columns: 1fr; }
+      .guide-hero { grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 20px; }
+      .guide-visual { max-height: 190px; }
+      .guide-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .guide-detail { grid-template-columns: 1fr; }
+      .canvas-head { align-items: flex-start; flex-direction: column; }
+      .canvas-head-right { width: 100%; flex-wrap: wrap; }
+      .canvas-head-right .button { flex: 1; }
+    }
+    @media (max-width: 480px) {
+      .topbar { align-items: flex-start; }
+      .top-actions { width: 100%; }
+      .workspace { border-radius: 10px; }
+      .canvas-panel { padding: 10px; }
+      .settings { grid-template-columns: 1fr; }
+      .guide-steps { grid-template-columns: 1fr; }
+      .guide-section-title { align-items: flex-start; flex-direction: column; }
+      .canvas-hint-label { display: none; }
+      .auth-card { padding: 25px 20px; }
+      .account-grid { grid-template-columns: 1fr; }
+      .account-note { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+  <section id="authPage" class="auth-shell" aria-label="Sign in to Frame Studio">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3.5" width="12" height="10" rx="1.7" stroke="white" stroke-width="1.5"/><path d="m5 11 2.7-2.7 2.2 2.1 1.6-1.6 1.5 1.5M7 17h12.5a1.5 1.5 0 0 0 1.5-1.5V8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11.5" cy="6.8" r="1" fill="white"/></svg></span>
+        Frame Studio
+      </div>
+      <h1 id="authTitle">Checking your sign-in…</h1>
+      <p id="authDescription">Your image workspace is protected by a local account.</p>
+      <form id="authForm" class="auth-form">
+        <label>Username
+          <input id="authUsername" name="username" type="text" minlength="3" maxlength="64" autocomplete="username" required>
+        </label>
+        <label>Password
+          <input id="authPassword" name="password" type="password" minlength="12" maxlength="256" autocomplete="current-password" required>
+        </label>
+        <label id="authConfirmWrap" hidden>Confirm password
+          <input id="authConfirm" name="confirmPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password">
+        </label>
+        <button id="authSubmit" class="button primary" type="submit" disabled>Continue</button>
+      </form>
+      <p id="authStatus" class="auth-status" role="status"></p>
+      <button id="forgotPasswordButton" class="auth-link" type="button" hidden>Forgot password?</button>
+      <form id="forgotPasswordForm" class="auth-form" hidden>
+        <label>Recovery email
+          <input id="forgotEmail" name="email" type="email" maxlength="254" autocomplete="email" required>
+        </label>
+        <button id="sendResetToken" class="button primary" type="submit">Email reset token</button>
+      </form>
+      <form id="resetPasswordForm" class="auth-form" hidden>
+        <label>Reset token from your email
+          <input id="resetToken" name="token" type="text" maxlength="256" autocomplete="one-time-code" required>
+        </label>
+        <label>New password
+          <input id="resetPassword" name="password" type="password" minlength="12" maxlength="256" autocomplete="new-password" required>
+        </label>
+        <label>Confirm new password
+          <input id="confirmResetPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password" required>
+        </label>
+        <button id="submitPasswordReset" class="button primary" type="submit">Reset password</button>
+      </form>
+      <button id="backToSignIn" class="auth-link" type="button" hidden>Back to sign in</button>
+      <p class="auth-privacy">This app only listens on this computer. Your password is stored as a salted hash; your images stay in the local Uploads folder.</p>
+    </div>
+  </section>
+  <div id="appRoot" hidden>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3" y="3.5" width="12" height="10" rx="1.7" stroke="white" stroke-width="1.5"/><path d="m5 11 2.7-2.7 2.2 2.1 1.6-1.6 1.5 1.5M7 17h12.5a1.5 1.5 0 0 0 1.5-1.5V8" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11.5" cy="6.8" r="1" fill="white"/></svg>
+      </span>
+      <span><span class="brand-name">Frame Studio</span><span class="brand-caption">SIMILARITY · EDIT · EXPORT</span></span>
+    </div>
+    <div id="topActions" class="top-actions">
+      <button id="chooseImages" class="button soft">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v5h14v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Add images
+      </button>
+      <button id="chooseFolder" class="button">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 7.5a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-10Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Add folder
+      </button>
+      <button id="download" class="button" disabled>Download originals</button>
+      <button id="pdfAll" class="button primary" disabled>Export PDF · 0 shown</button>
+      <button id="accountButton" class="button" type="button">Account</button>
+    </div>
+    <button id="themeToggle" class="button" type="button" aria-pressed="false" aria-label="Enable dark mode">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <g id="themeMoon"><path d="M20.2 15.1A8.3 8.3 0 0 1 8.9 3.8 8.5 8.5 0 1 0 20.2 15.1Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></g>
+        <g id="themeSun" hidden><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/><path d="M12 2.8v2m0 14.4v2M4.6 4.6 6 6m12 12 1.4 1.4M2.8 12h2m14.4 0h2M4.6 19.4 6 18m12-12 1.4-1.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></g>
+      </svg>
+      <span id="themeToggleLabel">Dark mode</span>
+    </button>
+    <button id="logoutButton" class="button" type="button">Sign out</button>
+  </header>
+
+  <main class="page">
+    <nav class="view-tabs" aria-label="Workspace pages">
+      <button id="imagesTab" class="view-tab active" type="button" aria-current="page" title="Image library">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="4" width="17" height="16" rx="2.5" stroke="currentColor" stroke-width="1.7"/><circle cx="9" cy="9" r="1.5" stroke="currentColor" stroke-width="1.5"/><path d="m5 17 4.5-4 3.2 2.7 2.4-2 3.9 3.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="rail-label">Library</span><span id="imageCount" class="rail-count">0</span>
+      </button>
+      <button id="similarTab" class="view-tab" type="button" title="Show duplicate groups only">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8.5" cy="8.5" r="4.5" stroke="currentColor" stroke-width="1.7"/><circle cx="15.5" cy="15.5" r="4.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 5.5a4.5 4.5 0 0 1 6.5 6.5M5.5 12a4.5 4.5 0 0 0 6.5 6.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="rail-label">Duplicates</span><span id="similarCount" class="rail-count">0</span>
+      </button>
+      <button id="adjustTab" class="view-tab" type="button" title="Crop, resize, and edit">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3v13a2 2 0 0 0 2 2h11M3 8h13a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h8v8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="rail-label">Adjust</span>
+      </button>
+      <button id="documentsTab" class="view-tab" type="button" title="PDF and Word tools">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3.5h8l4.5 4.5v12a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4.5 20V5A1.5 1.5 0 0 1 6 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 4v5h5M8 13h8M8 16.5h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="rail-label">PDF &amp; Word</span>
+      </button>
+      <button id="guideTab" class="view-tab" type="button" title="Frame Studio information">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 3.5a7 7 0 0 0-4.2 12.6c.8.6 1.2 1.3 1.2 2.2h6c0-.9.4-1.6 1.2-2.2A7 7 0 0 0 12 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9.5 21h5M9.5 18.3h5M12 6.5v3m-1.5-1.5h3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="rail-label">Info</span>
+      </button>
+    </nav>
+    <section id="imagePage">
+    <section class="workspace">
+      <aside id="assetsPanel" class="assets">
+        <div class="assets-head"><h2 id="assetsTitle">Image library</h2><span id="assetsTotal" class="assets-total">0</span></div>
+        <div class="search-wrap"><input id="search" class="search" type="search" placeholder="Find an image…" aria-label="Search images"></div>
+        <div id="downloadTools" class="library-tools">
+          <button id="startDownloadSelection" class="button" type="button">Select to download</button>
+          <button id="downloadSelected" class="button soft" type="button" disabled hidden>Download selected (0)</button>
+          <button id="cancelDownloadSelection" class="button" type="button" hidden>Cancel</button>
+        </div>
+        <div id="clearLibraryTools" class="library-tools" hidden>
+          <button id="clearLibrary" class="button danger" type="button" title="Permanently delete every image in this library">Clear library</button>
+        </div>
+        <p id="downloadSelectionHint" class="library-hint" hidden>Select only the originals you want. Downloads are lossless and never delete files.</p>
+        <div id="libraryTools" class="library-tools" hidden>
+          <button id="startDeleteSelection" class="button danger" type="button">Delete images</button>
+          <button id="selectDuplicates" class="button" type="button">Select extras (keep first)</button>
+          <button id="deleteSelected" class="button danger" type="button" disabled hidden>Delete selected (0)</button>
+          <button id="cancelDeleteSelection" class="button" type="button" hidden>Cancel</button>
+        </div>
+        <p id="selectionHint" class="library-hint" hidden>Select one or more images to permanently delete. Review the highlighted items before confirming.</p>
+        <div id="gallery" class="asset-list"></div>
+      </aside>
+
+      <section id="editorModal" class="canvas-panel" aria-label="Image editing canvas">
+        <div class="canvas-head">
+          <div class="canvas-title"><strong id="editorHeading">Your canvas is ready</strong><span id="imageDimensions">Select an image from your library to begin.</span></div>
+          <div class="canvas-head-right">
+            <span class="canvas-hint-label">Press and drag on the image to crop</span>
+            <button id="resetCropToolbar" class="button" type="button" disabled>Reset crop</button>
+            <button id="closeEditor" class="button" disabled>Clear</button>
+          </div>
+        </div>
+        <div id="comparisonView" class="comparison-view">
+          <div id="canvasEmpty" class="canvas-stage empty-stage">
+            <div class="canvas-empty">
+              <div class="empty-art"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4zM7 15l3-3 2.2 2.1 2.1-2.6L18 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/></svg></div>
+              <h2>A little room to create</h2>
+              <p>Add a folder or choose an image. Duplicate and lookalike photos will be grouped in your library, ready to review and edit.</p>
+              <button id="emptyUpload" class="button primary">Choose images</button>
+            </div>
+          </div>
+          <div id="canvasStage" class="canvas-stage" hidden>
+            <span class="compare-label">ORIGINAL IMAGE</span>
+            <canvas id="editCanvas" aria-label="Original image and crop area. Press and drag to select an area." tabindex="0"></canvas>
+          </div>
+          <div id="resultPreview" class="result-preview">
+            <span class="result-label">EDITED IMAGE</span>
+            <div id="resultPlaceholder" class="result-placeholder">
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 5h16v14H4zM7 15l3-3 2.2 2.1 2.1-2.6L18 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="15.5" cy="8.5" r="1.2" fill="currentColor"/></svg>
+              <strong>Edited preview appears here</strong>
+              <span>Choose an image and adjust the controls to see changes here.</span>
+            </div>
+            <img id="resultImage" alt="Edited image compared with original" hidden>
+            <div id="resultMessage" class="result-message"></div>
+          </div>
+        </div>
+        <div class="canvas-help"><span>Drag to crop · choose a ratio to lock the shape</span><span id="status" role="status"></span></div>
+      </section>
+
+      <aside id="inspector" class="inspector" hidden>
+        <div class="inspector-head"><h2>Adjust image</h2><span>LOCAL TOOLS</span></div>
+        <div class="settings">
+          <section class="setting-section">
+            <h3 class="setting-title"><span class="setting-dot"></span>Crop &amp; aspect</h3>
+            <label class="field-label" for="aspectRatio">Crop ratio</label>
+            <select id="aspectRatio" class="select" disabled>
+              <option value="free">Freeform</option>
+              <option value="original">Original</option>
+              <option value="1:1">Square · 1:1</option>
+              <option value="16:9">Landscape · 16:9</option>
+              <option value="3:4">Portrait · 3:4</option>
+              <option value="4:3">Classic · 4:3</option>
+              <option value="9:16">Story · 9:16</option>
+              <option value="custom">Custom ratio</option>
+            </select>
+            <div id="customRatio" class="aspect-row">
+              <input id="ratioWidth" class="field" type="number" min="1" value="16" aria-label="Custom ratio width" disabled>
+              <input id="ratioHeight" class="field" type="number" min="1" value="9" aria-label="Custom ratio height" disabled>
+            </div>
+          </section>
+          <section class="setting-section">
+            <h3 class="setting-title"><span class="setting-dot"></span>Resize</h3>
+            <div class="field-row">
+              <div><label class="field-label" for="outputWidth">Width · px</label><input id="outputWidth" class="field" type="number" min="1" max="24000" disabled></div>
+              <div><label class="field-label" for="outputHeight">Height · px</label><input id="outputHeight" class="field" type="number" min="1" max="24000" disabled></div>
+            </div>
+            <label class="check-row"><input id="lockRatio" type="checkbox" checked disabled> Keep proportions</label>
+          </section>
+          <section class="setting-section">
+            <h3 class="setting-title"><span class="setting-dot"></span>Color &amp; light</h3>
+            <div class="adjustment-control">
+              <div class="adjustment-head"><label class="field-label" for="brightness">Brightness</label><output id="brightnessValue" class="adjustment-value">100%</output></div>
+              <input id="brightness" class="adjustment-range" type="range" min="0" max="200" value="100" step="1" disabled>
+            </div>
+            <div class="adjustment-control">
+              <div class="adjustment-head"><label class="field-label" for="contrast">Contrast</label><output id="contrastValue" class="adjustment-value">100%</output></div>
+              <input id="contrast" class="adjustment-range" type="range" min="0" max="200" value="100" step="1" disabled>
+            </div>
+            <div class="adjustment-control">
+              <div class="adjustment-head"><label class="field-label" for="saturation">Saturation</label><output id="saturationValue" class="adjustment-value">100%</output></div>
+              <input id="saturation" class="adjustment-range" type="range" min="0" max="200" value="100" step="1" disabled>
+            </div>
+            <div class="adjustment-control">
+              <div class="adjustment-head"><label class="field-label" for="warmth">Color temperature</label><output id="warmthValue" class="adjustment-value">0</output></div>
+              <input id="warmth" class="adjustment-range" type="range" min="-100" max="100" value="0" step="1" disabled>
+            </div>
+          </section>
+          <section class="setting-section">
+            <h3 class="setting-title"><span class="setting-dot"></span>Blur &amp; focus</h3>
+            <div class="adjustment-control">
+              <div class="adjustment-head"><label class="field-label" for="sharpness">Sharpness / focus</label><output id="sharpnessValue" class="adjustment-value">100%</output></div>
+              <input id="sharpness" class="adjustment-range" type="range" min="0" max="200" value="100" step="1" disabled>
+            </div>
+            <div class="adjustment-control">
+              <div class="adjustment-head"><label class="field-label" for="blur">Blur</label><output id="blurValue" class="adjustment-value">0 px</output></div>
+              <input id="blur" class="adjustment-range" type="range" min="0" max="20" value="0" step="0.5" disabled>
+            </div>
+          </section>
+          <section class="setting-section">
+            <h3 class="setting-title"><span class="setting-dot"></span>Filters</h3>
+            <label class="field-label" for="filterPreset">Choose a look</label>
+            <select id="filterPreset" class="select" disabled>
+              <option value="none">Original</option>
+              <option value="warm">Warm</option>
+              <option value="cool">Cool</option>
+              <option value="vivid">Vivid</option>
+              <option value="vintage">Vintage</option>
+              <option value="mono">Black &amp; white</option>
+              <option value="sepia">Sepia</option>
+              <option value="soft">Soft focus</option>
+            </select>
+            <button id="resetAdjustments" class="button adjustment-reset" type="button" disabled>Reset adjustments</button>
+          </section>
+          <section class="setting-section">
+            <h3 class="setting-title"><span class="setting-dot"></span>Format &amp; quality</h3>
+            <label class="field-label" for="outputFormat">Export as</label>
+            <select id="outputFormat" class="select" disabled>
+              <option value="png">PNG · lossless</option>
+              <option value="jpeg">JPEG</option>
+              <option value="webp">WebP</option>
+              <option value="tiff">TIFF · lossless</option>
+              <option value="bmp">BMP</option>
+              <option value="pdf">PDF</option>
+            </select>
+            <div class="quality-row">
+              <span class="field-label" style="margin:0">Quality</span>
+              <input id="quality" type="range" min="50" max="100" value="95" aria-label="Export quality" disabled>
+              <span id="qualityValue" class="quality-value">95%</span>
+            </div>
+          </section>
+          <label class="ai-toggle">
+            <input id="removeBackground" type="checkbox" disabled>
+            <span><strong>Remove background · local AI</strong><small>Runs privately on this computer. PNG keeps the transparent result.</small></span>
+          </label>
+        </div>
+        <div class="inspector-foot">
+          <div class="status-line"><span class="status-dot"></span><span id="editStatus" class="edit-status">Choose an image to unlock the editing tools.</span></div>
+          <button id="applyEdit" class="button primary" disabled>Apply edits</button>
+          <div class="field-row">
+            <button id="cancelEdit" class="button" disabled>Reset crop</button>
+            <button id="downloadEdit" class="button" disabled>Download edit</button>
+          </div>
+        </div>
+      </aside>
+    </section>
+    </section>
+    <section id="guidePage" aria-label="Frame Studio information" hidden>
+      <div class="guide-shell">
+        <section class="guide-hero">
+          <div>
+            <p class="eyebrow">WELCOME TO FRAME STUDIO</p>
+            <h1>Sort, edit and export your photos in one calm workspace.</h1>
+            <p>Frame Studio groups visually similar images, gives you precise local editing tools, and keeps the original files unchanged until you choose an action.</p>
+            <div class="guide-actions">
+              <button id="guideUploadButton" class="button primary" type="button">Add images</button>
+              <button id="guideFolderButton" class="button" type="button">Add a whole folder</button>
+            </div>
+          </div>
+          <svg class="guide-visual" viewBox="0 0 640 330" role="img" aria-label="Illustration showing images grouped, edited, and exported">
+            <defs>
+              <linearGradient id="guideBg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f2edff"/><stop offset="1" stop-color="#e7f8ff"/></linearGradient>
+              <linearGradient id="guidePhoto" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#56cdb8"/><stop offset="1" stop-color="#7c72ea"/></linearGradient>
+              <filter id="guideShadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#3b4774" flood-opacity=".14"/></filter>
+            </defs>
+            <rect x="14" y="12" width="612" height="306" rx="26" fill="url(#guideBg)"/>
+            <g filter="url(#guideShadow)">
+              <rect x="45" y="60" width="158" height="206" rx="18" fill="#fff"/>
+              <rect x="60" y="77" width="128" height="101" rx="11" fill="url(#guidePhoto)"/>
+              <circle cx="158" cy="104" r="13" fill="#ffe5a7"/>
+              <path d="m73 162 33-37 25 27 16-18 29 31" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="60" y="193" width="82" height="8" rx="4" fill="#d9ddea"/>
+              <rect x="60" y="211" width="112" height="7" rx="3.5" fill="#eceef4"/>
+              <rect x="60" y="229" width="64" height="7" rx="3.5" fill="#eceef4"/>
+              <rect x="244" y="85" width="136" height="169" rx="18" fill="#fff"/>
+              <rect x="258" y="99" width="108" height="82" rx="11" fill="#e1dcff"/>
+              <rect x="270" y="110" width="43" height="47" rx="6" fill="#8270e8"/>
+              <rect x="307" y="124" width="47" height="43" rx="6" fill="#47bca9"/>
+              <path d="M259 199h105M259 218h78M259 236h49" stroke="#e1e4ed" stroke-width="8" stroke-linecap="round"/>
+              <rect x="421" y="47" width="165" height="221" rx="18" fill="#fff"/>
+              <rect x="439" y="67" width="57" height="11" rx="5.5" fill="#7a64e5"/>
+              <rect x="439" y="95" width="129" height="91" rx="11" fill="#f3f4f8"/>
+              <path d="M451 172 480 137l23 24 16-16 34 31" fill="none" stroke="#7367dc" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="439" y="204" width="129" height="8" rx="4" fill="#dfe3ed"/>
+              <rect x="439" y="222" width="96" height="8" rx="4" fill="#eceef4"/>
+              <circle cx="215" cy="163" r="18" fill="#fff"/>
+              <path d="M208 163h14m-5-5 5 5-5 5" fill="none" stroke="#7061d8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="395" cy="163" r="18" fill="#fff"/>
+              <path d="M388 163h14m-5-5 5 5-5 5" fill="none" stroke="#7061d8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <circle cx="574" cy="50" r="13" fill="#ffc66d"/>
+            <path d="M574 42v16m-8-8h16" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </section>
+        <div class="guide-section-title">
+          <div><p class="eyebrow">THE QUICK TOUR</p><h2>Four steps from folder to finished images</h2></div>
+          <p>Everything runs on this computer.</p>
+        </div>
+        <section class="guide-steps" aria-label="How to use Frame Studio">
+          <article class="guide-step">
+            <div class="guide-step-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v5h14v-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>1. Add your photos</h3>
+            <p>Choose individual images or add a folder. In Library, select one or more images to download or delete them individually. Originals are not recompressed.</p>
+          </article>
+          <article class="guide-step">
+            <div class="guide-step-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="8.5" cy="8.5" r="4.5" stroke="currentColor" stroke-width="1.7"/><circle cx="15.5" cy="15.5" r="4.5" stroke="currentColor" stroke-width="1.7"/><path d="M12 5.5a4.5 4.5 0 0 1 6.5 6.5M5.5 12a4.5 4.5 0 0 0 6.5 6.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></div>
+            <h3>2. Review duplicates</h3>
+            <p>Open Duplicates to review grouped lookalikes. Select extras only after checking them; deletion is permanent and always asks for confirmation.</p>
+          </article>
+          <article class="guide-step">
+            <div class="guide-step-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 3v13a2 2 0 0 0 2 2h11M3 8h13a2 2 0 0 1 2 2v11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8h8v8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>3. Edit side by side</h3>
+            <p>Select a thumbnail to edit it. Crop, resize, tune brightness, contrast, color temperature and saturation, sharpen or blur, or apply a filter. All adjustments are processed locally.</p>
+          </article>
+          <article class="guide-step">
+            <div class="guide-step-icon"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 3.5h8l4.5 4.5v12a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4.5 20V5A1.5 1.5 0 0 1 6 3.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 4v5h5M8 15h8m-4-4v8m0 0-3-3m3 3 3-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>4. Download or export</h3>
+            <p>Select only the images you want to download as a lossless ZIP, download all originals, or export the images shown as a PDF.</p>
+          </article>
+        </section>
+        <section class="guide-detail">
+          <article class="guide-detail-card">
+            <h3>Editing and comparing</h3>
+            <ul>
+              <li>New uploads open in Adjust automatically. Changes appear in the right-hand preview as you move the controls; Apply edits prepares the full-size download.</li>
+              <li>Choose Freeform, 1:1, 16:9, 3:4, or a custom crop ratio. Enter exact output dimensions when needed.</li>
+              <li>Adjust brightness, contrast, saturation, color temperature, sharpness and blur; try Warm, Cool, Vivid, Vintage, Black &amp; white, Sepia or Soft focus.</li>
+              <li>In Library, choose Select to download or Delete images, then click one or more individual photos. Deletion asks for confirmation.</li>
+              <li>Choose PNG or TIFF for lossless edits. JPEG and WebP are compressed formats; the original stays untouched.</li>
+            </ul>
+          </article>
+          <article class="guide-detail-card guide-highlight">
+            <h3>Privacy, PDFs and account recovery</h3>
+            <ul>
+              <li>Frame Studio listens only on this computer. Your library stays in the local Uploads folder.</li>
+              <li>PDF-to-Word and Word-to-PDF tools run locally. Microsoft Word is required for Word-to-PDF conversion.</li>
+              <li>Set up email recovery in Account settings using your SMTP provider and an app password; recovery email must be verified.</li>
+            </ul>
+          </article>
+        </section>
+      </div>
+    </section>
+    <section id="documentPage" hidden>
+      <section class="welcome">
+        <div>
+          <p class="eyebrow">EDIT · CONVERT · EXPORT</p>
+          <h1>PDF &amp; Word documents</h1>
+          <p>Convert PDFs to editable Word documents, or Word documents to PDF.</p>
+        </div>
+      </section>
+      <div class="document-workspace">
+        <section class="document-card">
+          <h2>Convert a document</h2>
+          <p>Select one PDF, DOC, or DOCX file. Convert a PDF to Word (.docx) to edit it, or convert a Word document to PDF for sharing.</p>
+          <input id="documentUpload" class="hidden-input" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
+          <div id="documentName" class="document-name empty" aria-live="polite">No file selected — choose a PDF, DOC, or DOCX.</div>
+          <div class="document-controls">
+            <div>
+              <label class="field-label" for="documentFormat">Convert to</label>
+              <select id="documentFormat" class="select" disabled>
+                <option value="pdf">PDF</option>
+                <option value="docx">Word document (.docx)</option>
+              </select>
+            </div>
+            <button id="chooseDocument" class="button" type="button">Choose PDF or Word file</button>
+          </div>
+          <button id="convertDocument" class="button primary" type="button" disabled>Convert &amp; download</button>
+          <div id="documentStatus" class="document-status" role="status"></div>
+        </section>
+        <aside class="document-card">
+          <h2>Make a PDF editable</h2>
+          <p class="document-note"><strong>PDF → Word → PDF</strong><br>Convert a PDF to DOCX, edit the result in Word, then convert the edited file back to PDF.</p>
+          <p>Word-to-PDF conversion uses Microsoft Word installed on this computer. PDF-to-DOCX conversion runs locally. For Google Docs, download the document as DOCX first. Complex layouts may need cleanup, and scanned PDFs need OCR before their text can be edited.</p>
+          <p>To make a PDF from your images, return to Library or Duplicates and use Export PDF. The export follows the images currently shown.</p>
+        </aside>
+      </div>
+    </section>
+    <input id="imageUpload" class="hidden-input" type="file" accept="image/*" multiple>
+    <input id="folderUpload" class="hidden-input" type="file" accept="image/*" webkitdirectory multiple>
+  </main>
+  <dialog id="accountDialog" class="account-dialog" aria-labelledby="accountDialogTitle">
+    <div class="account-header">
+      <h2 id="accountDialogTitle">Account settings</h2>
+      <button id="closeAccount" class="button" type="button">Close</button>
+    </div>
+    <section class="account-section">
+      <h3>Sign-in details</h3>
+      <p>Change your account name or password. Your current password is required to save changes.</p>
+      <div class="account-grid">
+        <label>New account name
+          <input id="newAccountName" type="text" minlength="3" maxlength="64" autocomplete="username">
+        </label>
+        <label>Current password
+          <input id="currentAccountPassword" type="password" maxlength="256" autocomplete="current-password">
+        </label>
+        <label>New password
+          <input id="newAccountPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password">
+        </label>
+        <label>Confirm new password
+          <input id="confirmAccountPassword" type="password" minlength="12" maxlength="256" autocomplete="new-password">
+        </label>
+        <p id="accountStatus" class="account-status account-note" role="status"></p>
+      </div>
+      <div class="account-footer">
+        <button id="saveAccount" class="button primary" type="button">Save account changes</button>
+      </div>
+    </section>
+    <section class="account-section">
+      <h3>Email password recovery</h3>
+      <p id="recoveryState">Set an email address and SMTP provider, then verify the address to enable “Forgot password”.</p>
+      <div class="account-grid">
+        <label>Recovery email
+          <input id="recoveryEmail" type="email" maxlength="254" autocomplete="email">
+        </label>
+        <label>SMTP server
+          <input id="smtpHost" type="text" placeholder="smtp.gmail.com" autocomplete="off">
+        </label>
+        <label>SMTP port
+          <input id="smtpPort" type="number" min="1" max="65535" value="587" autocomplete="off">
+        </label>
+        <label>SMTP username
+          <input id="smtpUsername" type="text" autocomplete="username">
+        </label>
+        <label>Sender email
+          <input id="smtpSender" type="email" maxlength="254" autocomplete="email">
+        </label>
+        <label>SMTP app password
+          <input id="smtpPassword" type="password" maxlength="256" autocomplete="new-password" placeholder="Leave blank to keep saved password">
+        </label>
+        <p class="account-note">Use your provider’s app password, not your normal email password. The SMTP password is encrypted for this Windows account. Gmail commonly uses smtp.gmail.com on port 587.</p>
+      </div>
+      <div class="account-footer">
+        <button id="sendRecoveryCode" class="button" type="button">Send verification code</button>
+      </div>
+      <div id="recoveryCodeBlock" hidden>
+        <div class="account-grid">
+          <label>Six-digit code from your email
+            <input id="recoveryCode" type="text" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code">
+          </label>
+        </div>
+        <div class="account-footer">
+          <button id="confirmRecoveryCode" class="button primary" type="button">Verify email</button>
+        </div>
+      </div>
+      <p id="recoveryStatus" class="account-status" role="status"></p>
+    </section>
+  </dialog>
+  </div>
+
+  <script>
+    const state = {
+      directory: "",
+      groups: [],
+      images: [],
+      visibleImages: [],
+      libraryMode: "all",
+      hasLoadedLibrary: false,
+      selectionMode: false,
+      selectedForDeletion: new Set(),
+      downloadSelectionMode: false,
+      selectedForDownload: new Set(),
+      documentFile: null,
+      selected: null,
+      source: null,
+      crop: null,
+      dragStart: null,
+      dragPointerId: null,
+      resultUrl: "",
+      previewUrl: "",
+      previewTimer: null,
+      previewRequestId: 0,
+      previewController: null,
+      resultFilename: "",
+      sourceRatio: 1
+    };
+    const $ = id => document.getElementById(id);
+    const gallery = $("gallery");
+    const canvas = $("editCanvas");
+    const context = canvas.getContext("2d");
+    const editorFields = [
+      "aspectRatio", "ratioWidth", "ratioHeight", "outputWidth", "outputHeight", "lockRatio",
+      "brightness", "contrast", "saturation", "warmth", "sharpness", "blur", "filterPreset",
+      "resetAdjustments", "outputFormat", "quality", "removeBackground", "applyEdit", "cancelEdit"
+    ];
+    const savedTheme = localStorage.getItem("frame-studio-theme");
+
+    function applyTheme(theme) {
+      const dark = theme === "dark";
+      document.documentElement.dataset.theme = dark ? "dark" : "light";
+      $("themeToggleLabel").textContent = dark ? "Light mode" : "Dark mode";
+      $("themeToggle").setAttribute("aria-pressed", String(dark));
+      $("themeToggle").setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+      $("themeMoon").hidden = dark;
+      $("themeSun").hidden = !dark;
+      localStorage.setItem("frame-studio-theme", dark ? "dark" : "light");
+    }
+
+    applyTheme(savedTheme === "dark" ? "dark" : "light");
+    $("themeToggle").onclick = () => applyTheme(
+      document.documentElement.dataset.theme === "dark" ? "light" : "dark"
+    );
+
+    async function fetchLocal(url, options) {
+      try {
+        const response = await fetch(url, options);
+        const publicAuthEndpoint = [
+          "/api/auth/status", "/api/auth/setup", "/api/auth/login", "/api/auth/logout",
+          "/api/auth/recovery/request", "/api/auth/recovery/reset"
+        ].includes(url.split("?")[0]);
+        if (response.status === 401 && !publicAuthEndpoint) {
+          showAuthPage(false, "Your session ended. Sign in again to continue.");
+        }
+        return response;
+      } catch (error) {
+        if (error instanceof TypeError) {
+          throw new Error("Cannot reach Frame Studio. Start it with run.bat and keep the server window open, then refresh.");
+        }
+        throw error;
+      }
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetchLocal(url, options);
+      const contentType = response.headers.get("Content-Type") || "";
+      const data = contentType.includes("application/json") ? await response.json() : null;
+      if (!response.ok) throw new Error(data && data.error ? data.error : "Request failed.");
+      return {response, data};
+    }
+
+    function configureAuth(setupRequired, message) {
+      $("authPage").hidden = false;
+      $("appRoot").hidden = true;
+      $("authPage").dataset.setupRequired = String(setupRequired);
+      $("authForm").hidden = false;
+      $("forgotPasswordForm").hidden = true;
+      $("resetPasswordForm").hidden = true;
+      $("forgotPasswordButton").hidden = setupRequired;
+      $("backToSignIn").hidden = true;
+      $("authTitle").textContent = setupRequired ? "Create your local account" : "Sign in to Frame Studio";
+      $("authDescription").textContent = setupRequired
+        ? "Create the account that protects this image workspace."
+        : "Sign in to open your private image workspace.";
+      $("authConfirmWrap").hidden = !setupRequired;
+      $("authConfirm").required = setupRequired;
+      $("authPassword").autocomplete = setupRequired ? "new-password" : "current-password";
+      $("authSubmit").textContent = setupRequired ? "Create account" : "Sign in";
+      $("authSubmit").disabled = false;
+      $("authStatus").textContent = message || "";
+      $("authStatus").classList.toggle(
+        "notice",
+        message === "You have signed out."
+          || (typeof message === "string" && message.startsWith("Password reset."))
+      );
+    }
+
+    function showAuthPage(setupRequired, message) {
+      if ($("accountDialog").open) $("accountDialog").close();
+      state.images = [];
+      state.groups = [];
+      state.visibleImages = [];
+      state.directory = "";
+      state.selectionMode = false;
+      state.selectedForDeletion.clear();
+      state.downloadSelectionMode = false;
+      state.selectedForDownload.clear();
+      state.documentFile = null;
+      gallery.replaceChildren();
+      $("search").value = "";
+      $("documentName").textContent = "No file selected — choose a PDF, DOC, or DOCX.";
+      $("documentName").classList.add("empty");
+      $("documentFormat").disabled = true;
+      $("convertDocument").disabled = true;
+      $("chooseDocument").textContent = "Choose PDF or Word file";
+      $("documentStatus").textContent = "";
+      $("documentUpload").value = "";
+      clearEditor();
+      configureAuth(setupRequired, message);
+      $("authPassword").value = "";
+      $("authConfirm").value = "";
+    }
+
+    function enterStudio() {
+      $("authPage").hidden = true;
+      $("appRoot").hidden = false;
+      $("authPassword").value = "";
+      $("authConfirm").value = "";
+      $("authStatus").textContent = "";
+      state.selectionMode = false;
+      state.selectedForDeletion.clear();
+      state.downloadSelectionMode = false;
+      state.selectedForDownload.clear();
+      loadImages().catch(error => $("status").textContent = error.message);
+    }
+
+    async function checkAuth() {
+      try {
+        const {data} = await requestJson("/api/auth/status");
+        if (data.authenticated) enterStudio();
+        else configureAuth(data.setupRequired, "");
+      } catch (error) {
+        configureAuth(false, error.message);
+        $("authSubmit").disabled = true;
+      }
+    }
+
+    $("authForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const setupRequired = $("authPage").dataset.setupRequired === "true";
+      const password = $("authPassword").value;
+      if (setupRequired && password !== $("authConfirm").value) {
+        $("authStatus").textContent = "The passwords do not match.";
+        $("authStatus").classList.remove("notice");
+        return;
+      }
+
+      $("authSubmit").disabled = true;
+      $("authStatus").textContent = "";
+      $("authStatus").classList.remove("notice");
+      try {
+        const endpoint = setupRequired ? "/api/auth/setup" : "/api/auth/login";
+        const {data} = await requestJson(endpoint, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            username: $("authUsername").value,
+            password
+          })
+        });
+        if (!data.authenticated) throw new Error("Sign-in did not complete.");
+        enterStudio();
+      } catch (error) {
+        if (setupRequired && error.message === "An account already exists. Sign in instead.") {
+          configureAuth(false, error.message);
+        } else {
+          $("authStatus").textContent = error.message;
+        }
+      } finally {
+        if (!$("authPage").hidden) $("authSubmit").disabled = false;
+      }
+    });
+
+    $("forgotPasswordButton").onclick = () => {
+      $("authForm").hidden = true;
+      $("forgotPasswordButton").hidden = true;
+      $("forgotPasswordForm").hidden = false;
+      $("resetPasswordForm").hidden = true;
+      $("backToSignIn").hidden = false;
+      $("authStatus").textContent = "Enter the recovery email verified in Account settings.";
+      $("authStatus").classList.add("notice");
+    };
+
+    $("backToSignIn").onclick = () => {
+      configureAuth(false, "");
+      $("authPassword").value = "";
+      $("forgotEmail").value = "";
+      $("resetToken").value = "";
+      $("resetPassword").value = "";
+      $("confirmResetPassword").value = "";
+    };
+
+    $("forgotPasswordForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      $("sendResetToken").disabled = true;
+      $("authStatus").textContent = "Sending request…";
+      $("authStatus").classList.add("notice");
+      try {
+        const {data} = await requestJson("/api/auth/recovery/request", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({email: $("forgotEmail").value})
+        });
+        $("forgotPasswordForm").hidden = true;
+        $("resetPasswordForm").hidden = false;
+        $("authStatus").textContent = data.message;
+      } catch (error) {
+        $("authStatus").textContent = error.message;
+        $("authStatus").classList.remove("notice");
+      } finally {
+        $("sendResetToken").disabled = false;
+      }
+    });
+
+    $("resetPasswordForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const password = $("resetPassword").value;
+      if (password !== $("confirmResetPassword").value) {
+        $("authStatus").textContent = "The new passwords do not match.";
+        $("authStatus").classList.remove("notice");
+        return;
+      }
+      $("submitPasswordReset").disabled = true;
+      $("authStatus").textContent = "Resetting password…";
+      $("authStatus").classList.add("notice");
+      try {
+        await requestJson("/api/auth/recovery/reset", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({token: $("resetToken").value, password})
+        });
+        configureAuth(false, "Password reset. Sign in with your new password.");
+        $("authUsername").value = "";
+        $("authPassword").value = "";
+      } catch (error) {
+        $("authStatus").textContent = error.message;
+        $("authStatus").classList.remove("notice");
+      } finally {
+        $("submitPasswordReset").disabled = false;
+      }
+    });
+
+    $("logoutButton").onclick = async () => {
+      $("logoutButton").disabled = true;
+      try {
+        await requestJson("/api/auth/logout", {method: "POST"});
+        state.images = [];
+        state.groups = [];
+        state.visibleImages = [];
+        state.directory = "";
+        state.selectedForDeletion.clear();
+        state.selectionMode = false;
+        state.selectedForDownload.clear();
+        state.downloadSelectionMode = false;
+        state.documentFile = null;
+        $("search").value = "";
+        $("gallery").replaceChildren();
+        $("documentUpload").value = "";
+        $("documentName").textContent = "No file selected — choose a PDF, DOC, or DOCX.";
+        $("documentName").classList.add("empty");
+        $("documentFormat").disabled = true;
+        $("convertDocument").disabled = true;
+        $("chooseDocument").textContent = "Choose PDF or Word file";
+        $("documentStatus").textContent = "";
+        clearEditor();
+        configureAuth(false, "You have signed out.");
+        $("authUsername").value = "";
+      } catch (error) {
+        $("status").textContent = error.message;
+      } finally {
+        $("logoutButton").disabled = false;
+      }
+    };
+
+    async function openAccountSettings() {
+      $("accountDialog").showModal();
+      $("accountStatus").textContent = "";
+      $("recoveryStatus").textContent = "";
+      $("currentAccountPassword").value = "";
+      $("newAccountPassword").value = "";
+      $("confirmAccountPassword").value = "";
+      $("smtpPassword").value = "";
+      $("recoveryCodeBlock").hidden = true;
+      try {
+        const {data} = await requestJson("/api/auth/account");
+        $("newAccountName").value = data.username;
+        $("recoveryEmail").value = data.recoveryEmail || "";
+        $("smtpHost").value = data.smtpHost || "";
+        $("smtpPort").value = data.smtpPort || 587;
+        $("smtpUsername").value = data.smtpUsername || "";
+        $("smtpSender").value = data.smtpSender || "";
+        $("recoveryState").textContent = data.recoveryVerified
+          ? "Verified recovery email: " + data.recoveryEmail
+          : data.smtpConfigured
+            ? "SMTP is configured. Verify an email address to enable password recovery."
+            : "Set an email address and SMTP provider, then verify the address to enable “Forgot password”.";
+      } catch (error) {
+        $("accountStatus").textContent = error.message;
+      }
+    }
+
+    async function saveAccountSettings() {
+      const newPassword = $("newAccountPassword").value;
+      if (newPassword && newPassword !== $("confirmAccountPassword").value) {
+        $("accountStatus").textContent = "The new passwords do not match.";
+        return;
+      }
+      $("saveAccount").disabled = true;
+      $("accountStatus").textContent = "Saving account changes…";
+      try {
+        const {data} = await requestJson("/api/auth/account", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            currentPassword: $("currentAccountPassword").value,
+            newUsername: $("newAccountName").value,
+            newPassword
+          })
+        });
+        $("newAccountName").value = data.username;
+        $("currentAccountPassword").value = "";
+        $("newAccountPassword").value = "";
+        $("confirmAccountPassword").value = "";
+        $("accountStatus").textContent = "Account updated. Other active sessions have been signed out.";
+      } catch (error) {
+        $("accountStatus").textContent = error.message;
+      } finally {
+        $("saveAccount").disabled = false;
+      }
+    }
+
+    async function sendRecoveryVerification() {
+      $("sendRecoveryCode").disabled = true;
+      $("recoveryStatus").textContent = "Sending verification email…";
+      try {
+        await requestJson("/api/auth/recovery/email/verify", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            email: $("recoveryEmail").value,
+            smtpHost: $("smtpHost").value,
+            smtpPort: $("smtpPort").value,
+            smtpUsername: $("smtpUsername").value,
+            smtpSender: $("smtpSender").value,
+            smtpPassword: $("smtpPassword").value
+          })
+        });
+        $("smtpPassword").value = "";
+        $("recoveryCodeBlock").hidden = false;
+        $("recoveryStatus").textContent = "Verification code sent. Enter it within 10 minutes.";
+      } catch (error) {
+        $("recoveryStatus").textContent = error.message;
+      } finally {
+        $("sendRecoveryCode").disabled = false;
+      }
+    }
+
+    async function confirmRecoveryEmail() {
+      $("confirmRecoveryCode").disabled = true;
+      $("recoveryStatus").textContent = "Verifying email…";
+      try {
+        await requestJson("/api/auth/recovery/email/confirm", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({code: $("recoveryCode").value.trim()})
+        });
+        $("recoveryState").textContent = "Verified recovery email: " + $("recoveryEmail").value.trim();
+        $("recoveryCodeBlock").hidden = true;
+        $("recoveryCode").value = "";
+        $("recoveryStatus").textContent = "Email recovery is enabled.";
+      } catch (error) {
+        $("recoveryStatus").textContent = error.message;
+      } finally {
+        $("confirmRecoveryCode").disabled = false;
+      }
+    }
+
+    $("accountButton").onclick = openAccountSettings;
+    $("closeAccount").onclick = () => $("accountDialog").close();
+    $("saveAccount").onclick = saveAccountSettings;
+    $("sendRecoveryCode").onclick = sendRecoveryVerification;
+    $("confirmRecoveryCode").onclick = confirmRecoveryEmail;
+
+    function uploadChunks(files) {
+      const maxChunkSize = 48 * 1024 * 1024;
+      const chunks = [];
+      let chunk = [];
+      let chunkSize = 0;
+      files.forEach(file => {
+        if (chunk.length && (chunk.length >= 8 || chunkSize + file.size > maxChunkSize)) {
+          chunks.push(chunk);
+          chunk = [];
+          chunkSize = 0;
+        }
+        chunk.push(file);
+        chunkSize += file.size;
+        if (file.size > maxChunkSize) {
+          chunks.push(chunk);
+          chunk = [];
+          chunkSize = 0;
+        }
+      });
+      if (chunk.length) chunks.push(chunk);
+      return chunks;
+    }
+
+    async function uploadFiles(files) {
+      if (!files.length) return;
+      const chunks = uploadChunks(files);
+      const previousImageNames = new Set(state.images.map(image => image.name));
+      $("chooseImages").disabled = true;
+      $("chooseFolder").disabled = true;
+      let completedFiles = 0;
+      let uploadedCount = 0;
+      let allUploaded = false;
+      try {
+        for (const batch of chunks) {
+          const form = new FormData();
+          batch.forEach(file => form.append("files", file, file.name));
+          $("status").textContent = "Uploading " + (completedFiles + 1) + "–" +
+            (completedFiles + batch.length) + " of " + files.length + "…";
+          const {data} = await requestJson("/api/upload", {method: "POST", body: form});
+          state.directory = data.directory;
+          uploadedCount += data.uploaded;
+          completedFiles += batch.length;
+        }
+        allUploaded = true;
+        await loadImages();
+        openNewlyUploadedImage(previousImageNames);
+        $("status").textContent = uploadedCount + " image(s) added to your library.";
+      } catch (error) {
+        let refreshMessage = "";
+        if (!allUploaded) {
+          try {
+            await loadImages();
+            openNewlyUploadedImage(previousImageNames);
+          } catch (refreshError) {
+            refreshMessage = " The library could not be refreshed: " + refreshError.message;
+          }
+        }
+        const progress = allUploaded
+          ? "All files uploaded, but the library could not be refreshed. "
+          : "Upload interrupted after " + completedFiles + " of " + files.length +
+            " files; some may already be imported. ";
+        $("status").textContent = progress + error.message + refreshMessage;
+      } finally {
+        $("chooseImages").disabled = false;
+        $("chooseFolder").disabled = false;
+        renderGroups();
+      }
+    }
+
+    function openNewlyUploadedImage(previousImageNames) {
+      const image = state.images.find(candidate => !previousImageNames.has(candidate.name));
+      if (!image) return;
+      openEditor(image);
+      setView("adjust");
+    }
+
+    async function loadImages() {
+      $("status").textContent = "Finding duplicate groups…";
+      const url = state.directory ? "/api/images?directory=" + encodeURIComponent(state.directory) : "/api/images";
+      const {data} = await requestJson(url);
+      const hadImages = state.images.length > 0;
+      state.directory = data.directory;
+      state.groups = data.groups;
+      state.images = data.groups.flatMap(group => group.images);
+      renderGroups();
+      if (state.images.length && (!state.hasLoadedLibrary || !hadImages)) setView("adjust");
+      state.hasLoadedLibrary = true;
+      $("status").textContent = state.images.length ? "Your originals are safe." : "";
+    }
+
+    function renderGroups() {
+      const query = $("search").value.trim().toLowerCase();
+      gallery.replaceChildren();
+      const sourceGroups = state.libraryMode === "similar"
+        ? state.groups.filter(group => group.similar)
+        : state.groups;
+      const filtered = sourceGroups.map(group => ({
+        ...group,
+        images: group.images.filter(image => image.name.toLowerCase().includes(query))
+      })).filter(group => group.images.length);
+      state.visibleImages = filtered.flatMap(group => group.images);
+      const similarGroups = state.groups.filter(group => group.similar);
+      $("imageCount").textContent = state.images.length;
+      $("assetsTotal").textContent = state.visibleImages.length;
+      $("assetsTitle").textContent = state.libraryMode === "similar" ? "Duplicate images" : "Image library";
+      $("similarCount").textContent = similarGroups.length;
+      $("download").disabled = state.images.length === 0;
+      $("pdfAll").disabled = state.visibleImages.length === 0;
+      $("pdfAll").textContent = "Export PDF · " + state.visibleImages.length + " shown";
+      $("pdfAll").title = "Create a PDF with one page for each image currently shown.";
+      $("downloadTools").hidden = !state.visibleImages.length || state.selectionMode;
+      $("startDownloadSelection").hidden = state.downloadSelectionMode || state.selectionMode;
+      $("downloadSelected").hidden = !state.downloadSelectionMode;
+      $("downloadSelected").disabled = state.selectedForDownload.size === 0;
+      $("downloadSelected").textContent = "Download selected (" + state.selectedForDownload.size + ")";
+      $("cancelDownloadSelection").hidden = !state.downloadSelectionMode;
+      $("clearLibraryTools").hidden = state.libraryMode !== "all" || !state.images.length
+        || state.downloadSelectionMode || state.selectionMode;
+      $("downloadSelectionHint").hidden = !state.downloadSelectionMode;
+      if (state.downloadSelectionMode) {
+        $("downloadSelectionHint").textContent = state.selectedForDownload.size
+          ? state.selectedForDownload.size + " individual image(s) selected. Download creates a ZIP without changing or deleting them."
+          : "Click individual photos to select them, then choose Download selected.";
+      }
+      $("libraryTools").hidden = !state.visibleImages.length || state.downloadSelectionMode;
+      $("startDeleteSelection").hidden = state.selectionMode;
+      $("selectDuplicates").hidden = state.selectionMode
+        || state.libraryMode !== "similar" || !filtered.some(group => group.similar);
+      $("selectionHint").hidden = !state.selectionMode;
+      if (state.selectionMode) {
+        $("selectionHint").textContent = state.selectedForDeletion.size
+          ? state.selectedForDeletion.size + " image(s) selected. Click cards to change your selection; deletion is permanent."
+          : "Click each image you want to delete. Select one or several, then review before confirming.";
+      }
+      $("deleteSelected").disabled = state.selectedForDeletion.size === 0;
+      $("deleteSelected").textContent = "Delete selected (" + state.selectedForDeletion.size + ")";
+      $("deleteSelected").hidden = !state.selectionMode;
+      $("cancelDeleteSelection").hidden = !state.selectionMode;
+
+      filtered.filter(group => group.similar).forEach((group, index) => {
+        gallery.appendChild(makeGroup("Duplicate group " + (index + 1), group.images, true));
+      });
+      const individual = filtered.filter(group => !group.similar).flatMap(group => group.images);
+      if (individual.length) gallery.appendChild(makeGroup("Other images", individual, false));
+
+      if (!filtered.length) {
+        const noImages = state.images.length === 0;
+        const noDuplicates = !noImages && state.libraryMode === "similar" && !query;
+        const empty = document.createElement("div");
+        empty.className = "library-empty-state";
+        empty.setAttribute("role", "status");
+        const icon = document.createElement("span");
+        icon.className = "library-empty-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = noImages ? "+" : noDuplicates ? "0" : "?";
+        const title = document.createElement("strong");
+        title.textContent = noImages
+          ? "Your library is empty"
+          : noDuplicates
+            ? "No duplicate groups found"
+            : "No images match your search";
+        const message = document.createElement("p");
+        message.textContent = noImages
+          ? "Add photos or a folder to start organizing your collection."
+          : noDuplicates
+            ? "Your current collection has no visual matches. New duplicate groups will appear here as they are found."
+            : "Try another filename or clear your search to see more photos.";
+        empty.append(icon, title, message);
+        if (noImages || noDuplicates || query) {
+          const action = document.createElement("button");
+          action.className = noDuplicates ? "button" : "button primary";
+          action.type = "button";
+          action.textContent = noImages ? "Add images" : noDuplicates ? "View library" : "Clear search";
+          action.onclick = noImages
+            ? () => $("imageUpload").click()
+            : noDuplicates
+              ? () => setView("images")
+              : () => {
+                $("search").value = "";
+                renderGroups();
+              };
+          empty.appendChild(action);
+        }
+        gallery.appendChild(empty);
+      }
+      if (!state.visibleImages.length) clearEditor();
+      else if (!state.selected || !state.visibleImages.some(image => image.name === state.selected.name)) openEditor(state.visibleImages[0]);
+      else highlightSelected();
+    }
+
+    function selectSimilarExtras() {
+      state.downloadSelectionMode = false;
+      state.selectedForDownload.clear();
+      state.selectionMode = true;
+      state.selectedForDeletion.clear();
+      const query = $("search").value.trim().toLowerCase();
+      state.groups.filter(group => group.similar).forEach(group => {
+        group.images
+          .filter(image => image.name.toLowerCase().includes(query))
+          .slice(1)
+          .forEach(image => state.selectedForDeletion.add(image.name));
+      });
+      renderGroups();
+    }
+
+    function startDownloadSelection() {
+      state.selectionMode = false;
+      state.selectedForDeletion.clear();
+      state.downloadSelectionMode = true;
+      state.selectedForDownload.clear();
+      renderGroups();
+    }
+
+    function startDeleteSelection() {
+      state.downloadSelectionMode = false;
+      state.selectedForDownload.clear();
+      state.selectionMode = true;
+      state.selectedForDeletion.clear();
+      renderGroups();
+    }
+
+    async function downloadSelectedImages() {
+      const filenames = Array.from(state.selectedForDownload);
+      if (!filenames.length) return;
+      $("downloadSelected").disabled = true;
+      $("status").textContent = "Preparing " + filenames.length + " original image(s)…";
+      try {
+        const response = await fetchLocal("/api/download-selected", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({filenames})
+        });
+        if (!response.ok) {
+          const contentType = response.headers.get("Content-Type") || "";
+          const data = contentType.includes("application/json") ? await response.json() : null;
+          throw new Error(data && data.error ? data.error : "Could not download the selected images.");
+        }
+        const url = URL.createObjectURL(await response.blob());
+        downloadBlob(url, "selected-images.zip");
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+        $("status").textContent = "Downloading " + filenames.length + " original image(s) as a lossless ZIP.";
+        state.downloadSelectionMode = false;
+        state.selectedForDownload.clear();
+        renderGroups();
+      } catch (error) {
+        $("status").textContent = error.message;
+      } finally {
+        $("downloadSelected").disabled = state.selectedForDownload.size === 0;
+      }
+    }
+
+    async function deleteSelectedImages(clearAll) {
+      const filenames = clearAll
+        ? state.images.map(image => image.name)
+        : Array.from(state.selectedForDeletion);
+      if (!filenames.length) return;
+      const confirmed = window.confirm(
+        clearAll
+          ? "Clear the entire library? This will permanently delete all " + filenames.length +
+            " uploaded original image(s). This cannot be undone."
+          : "Permanently delete " + filenames.length + " selected original image(s)? This cannot be undone."
+      );
+      if (!confirmed) return;
+
+      $("clearLibrary").disabled = true;
+      $("deleteSelected").disabled = true;
+      $("selectDuplicates").disabled = true;
+      $("cancelDeleteSelection").disabled = true;
+      $("status").textContent = clearAll ? "Clearing your library…" : "Deleting selected originals…";
+      const deleted = [];
+      const failed = [];
+      let requestError = "";
+      try {
+        for (let offset = 0; offset < filenames.length; offset += 200) {
+          const batch = filenames.slice(offset, offset + 200);
+          try {
+            const response = await fetchLocal("/api/delete", {
+              method: "POST",
+              headers: {"Content-Type": "application/json"},
+              body: JSON.stringify({filenames: batch})
+            });
+            const contentType = response.headers.get("Content-Type") || "";
+            const data = contentType.includes("application/json") ? await response.json() : null;
+            if (!data || !Array.isArray(data.deleted) || !Array.isArray(data.failed)) {
+              throw new Error("The server returned an invalid deletion result.");
+            }
+            if (!response.ok && response.status !== 207 && !data.failed.length) {
+              throw new Error(data.error || "Could not delete selected images.");
+            }
+            deleted.push(...data.deleted);
+            failed.push(...data.failed);
+          } catch (error) {
+            requestError = error.message;
+            filenames.slice(offset).forEach(filename => failed.push({filename, error: requestError}));
+            break;
+          }
+        }
+        state.selectedForDeletion = clearAll
+          ? new Set()
+          : new Set(failed.map(item => item.filename));
+        state.selectionMode = !clearAll && failed.length > 0;
+        let refreshError = null;
+        try {
+          await loadImages();
+        } catch (error) {
+          refreshError = error;
+        }
+        const deleteSummary = clearAll
+          ? failed.length
+            ? "Removed " + deleted.length + " image(s); " + failed.length + " could not be removed."
+            : "Library cleared. Removed " + deleted.length + " image(s)."
+          : failed.length
+            ? "Deleted " + deleted.length + " image(s); " + failed.length +
+              " could not be deleted. Failed items remain selected."
+            : "Deleted " + deleted.length + " image(s).";
+        $("status").textContent = deleteSummary
+          + (requestError ? " " + requestError : "")
+          + (refreshError ? " Library refresh failed: " + refreshError.message : "");
+        if (!failed.length) $("selectionHint").textContent = "";
+        renderGroups();
+      } finally {
+        $("clearLibrary").disabled = state.images.length === 0;
+        $("deleteSelected").disabled = state.selectedForDeletion.size === 0;
+        $("selectDuplicates").disabled = false;
+        $("cancelDeleteSelection").disabled = false;
+      }
+    }
+
+    function makeGroup(title, images, similar) {
+      const section = document.createElement("section");
+      section.className = "group";
+      const heading = document.createElement("div");
+      heading.className = "group-heading";
+      const name = document.createElement("h3");
+      name.textContent = title;
+      const badge = document.createElement("span");
+      badge.className = "group-badge";
+      badge.textContent = images.length + " image" + (images.length === 1 ? "" : "s");
+      heading.append(name, badge);
+      section.appendChild(heading);
+
+      images.forEach(image => {
+        const button = document.createElement("button");
+        button.className = "asset-card";
+        button.type = "button";
+        const markedForDeletion = state.selectedForDeletion.has(image.name);
+        const markedForDownload = state.selectedForDownload.has(image.name);
+        button.classList.toggle("selecting-images", state.downloadSelectionMode || state.selectionMode);
+        button.classList.toggle("marked-for-deletion", markedForDeletion);
+        button.classList.toggle("selected-for-download", markedForDownload);
+        button.setAttribute("aria-label", state.downloadSelectionMode
+          ? (markedForDownload ? "Selected to download: " : "Select to download: ") + image.name
+          : state.selectionMode
+            ? (markedForDeletion ? "Selected to delete: " : "Select for deletion: ") + image.name
+            : "Edit " + image.name);
+        if (state.downloadSelectionMode) button.setAttribute("aria-pressed", String(markedForDownload));
+        else if (state.selectionMode) button.setAttribute("aria-pressed", String(markedForDeletion));
+        button.dataset.name = image.name;
+        const thumb = document.createElement("span");
+        thumb.className = "asset-thumb";
+        const preview = document.createElement("img");
+        preview.src = "/api/file?path=" + encodeURIComponent(image.path);
+        preview.alt = "";
+        preview.loading = "lazy";
+        preview.onerror = () => {
+          preview.remove();
+          thumb.textContent = "Preview unavailable";
+        };
+        const meta = document.createElement("span");
+        meta.className = "asset-meta";
+        const filename = document.createElement("span");
+        filename.className = "asset-name";
+        filename.textContent = image.name;
+        const size = document.createElement("span");
+        size.className = "asset-size";
+        size.textContent = formatSize(image.size) + (similar ? " · duplicate" : "");
+        thumb.appendChild(preview);
+        meta.append(filename, size);
+        if (markedForDeletion) {
+          const marker = document.createElement("span");
+          marker.className = "delete-mark";
+          marker.textContent = "Selected to delete";
+          meta.appendChild(marker);
+        } else if (markedForDownload) {
+          const marker = document.createElement("span");
+          marker.className = "download-mark";
+          marker.textContent = "Selected to download";
+          meta.appendChild(marker);
+        }
+        if (state.downloadSelectionMode) {
+          const indicator = document.createElement("span");
+          indicator.className = "selection-indicator" + (markedForDownload ? " selected" : "");
+          indicator.setAttribute("aria-hidden", "true");
+          button.appendChild(indicator);
+        }
+        button.append(thumb, meta);
+        button.onclick = () => {
+          if (state.downloadSelectionMode) {
+            if (state.selectedForDownload.has(image.name)) state.selectedForDownload.delete(image.name);
+            else state.selectedForDownload.add(image.name);
+            renderGroups();
+          } else if (state.selectionMode) {
+            if (state.selectedForDeletion.has(image.name)) state.selectedForDeletion.delete(image.name);
+            else state.selectedForDeletion.add(image.name);
+            renderGroups();
+          } else {
+            openEditor(image);
+            setView("adjust");
+          }
+        };
+        section.appendChild(button);
+      });
+      return section;
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+      return (bytes / 1048576).toFixed(1) + " MB";
+    }
+
+    function setEditorEnabled(enabled) {
+      editorFields.forEach(id => $(id).disabled = !enabled);
+      $("downloadEdit").disabled = !enabled || !state.resultUrl;
+      $("closeEditor").disabled = !enabled;
+      $("resetCropToolbar").disabled = !enabled;
+    }
+
+    function fitCanvasToStage() {
+      if (!state.source || !canvas.width || !canvas.height || $("canvasStage").hidden || $("imagePage").hidden) return;
+      const bounds = $("canvasStage").getBoundingClientRect();
+      const labelHeight = document.querySelector(".compare-label").getBoundingClientRect().height;
+      const maxWidth = Math.max(1, bounds.width - 24);
+      const maxHeight = Math.max(1, bounds.height - labelHeight - 24);
+      const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height, 1100 / canvas.width);
+      canvas.style.width = Math.max(1, Math.floor(canvas.width * scale)) + "px";
+      canvas.style.height = Math.max(1, Math.floor(canvas.height * scale)) + "px";
+      if ($("resultPreview").classList.contains("visible")) {
+        const preview = $("resultPreview");
+        const label = preview.querySelector(".result-label").getBoundingClientRect().height;
+        const message = $("resultMessage").getBoundingClientRect().height;
+        $("resultImage").style.maxHeight = Math.max(1, preview.clientHeight - label - message - 34) + "px";
+      }
+    }
+
+    function stopLivePreview() {
+      if (state.previewTimer !== null) {
+        window.clearTimeout(state.previewTimer);
+        state.previewTimer = null;
+      }
+      state.previewRequestId += 1;
+      if (state.previewController) {
+        state.previewController.abort();
+        state.previewController = null;
+      }
+    }
+
+    function openEditor(image) {
+      state.selected = image;
+      state.dragStart = null;
+      state.dragPointerId = null;
+      stopLivePreview();
+      if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+      if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+      state.resultUrl = "";
+      state.previewUrl = "";
+      $("resultPreview").classList.remove("visible");
+      $("resultImage").style.maxHeight = "";
+      $("resultImage").style.filter = "none";
+      $("resultImage").hidden = true;
+      $("resultPlaceholder").hidden = false;
+      $("resultMessage").textContent = "";
+      $("downloadEdit").disabled = true;
+      const source = new Image();
+      state.source = source;
+      source.onload = () => {
+        if (state.source !== source || state.selected !== image) return;
+        const scale = Math.min(1400 / source.naturalWidth, 1000 / source.naturalHeight, 1);
+        canvas.width = Math.max(1, Math.round(source.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(source.naturalHeight * scale));
+        state.sourceRatio = source.naturalWidth / source.naturalHeight;
+        state.crop = {x: 0, y: 0, width: canvas.width, height: canvas.height};
+        $("canvasEmpty").hidden = true;
+        $("canvasStage").hidden = false;
+        fitCanvasToStage();
+        $("editorHeading").textContent = image.name;
+        $("imageDimensions").textContent = source.naturalWidth + " × " + source.naturalHeight + " px · original";
+        $("outputWidth").value = source.naturalWidth;
+        $("outputHeight").value = source.naturalHeight;
+        $("aspectRatio").value = "free";
+        $("customRatio").classList.remove("visible");
+        const extension = image.name.split(".").pop().toLowerCase();
+        const format = extension === "jpg" ? "jpeg" : extension;
+        $("outputFormat").value = ["png", "jpeg", "webp", "tiff", "bmp"].includes(format) ? format : "png";
+        $("quality").disabled = !["jpeg", "webp"].includes($("outputFormat").value);
+        $("removeBackground").checked = false;
+        setDefaultAdjustmentValues();
+        $("resultPreview").classList.remove("visible");
+        $("resultPreview").classList.add("visible");
+        $("resultImage").style.maxHeight = "";
+        $("resultImage").style.filter = "none";
+        $("resultImage").hidden = false;
+        $("resultImage").src = source.src;
+        $("resultPlaceholder").hidden = true;
+        $("resultMessage").textContent = "Live preview · adjust any control to see its effect.";
+        $("downloadEdit").disabled = true;
+        $("editStatus").textContent = "Drag on the image to set a crop area.";
+        setEditorEnabled(true);
+        $("quality").disabled = !["jpeg", "webp"].includes($("outputFormat").value);
+        setInitialCrop();
+        updateOutputDimensions();
+        drawCrop();
+        requestAnimationFrame(fitCanvasToStage);
+        highlightSelected();
+      };
+      source.onerror = () => {
+        if (state.source !== source || state.selected !== image) return;
+        $("status").textContent = "This image could not be opened for editing.";
+        clearEditor();
+      };
+      source.src = "/api/file?path=" + encodeURIComponent(image.path);
+      setEditorEnabled(false);
+      $("editorHeading").textContent = image.name;
+      $("imageDimensions").textContent = "Loading image…";
+      highlightSelected();
+    }
+
+    function clearEditor() {
+      state.selected = null;
+      state.source = null;
+      state.crop = null;
+      state.dragStart = null;
+      state.dragPointerId = null;
+      stopLivePreview();
+      if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+      if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+      state.resultUrl = "";
+      state.previewUrl = "";
+      canvas.width = 0;
+      canvas.height = 0;
+      canvas.style.width = "";
+      canvas.style.height = "";
+      $("canvasStage").hidden = true;
+      $("canvasEmpty").hidden = false;
+      $("editorHeading").textContent = "Your canvas is ready";
+      $("imageDimensions").textContent = "Select an image from your library to begin.";
+      $("resultPreview").classList.remove("visible");
+      $("resultImage").style.maxHeight = "";
+      $("resultImage").style.filter = "none";
+      $("resultImage").hidden = true;
+      $("resultPlaceholder").hidden = false;
+      $("resultMessage").textContent = "";
+      $("editStatus").textContent = "Choose an image to unlock the editing tools.";
+      setEditorEnabled(false);
+      highlightSelected();
+    }
+
+    function highlightSelected() {
+      gallery.querySelectorAll(".asset-card").forEach(card => {
+        card.classList.toggle("selected", Boolean(state.selected && card.dataset.name === state.selected.name));
+        card.classList.toggle("marked-for-deletion", state.selectedForDeletion.has(card.dataset.name));
+        card.classList.toggle("selected-for-download", state.selectedForDownload.has(card.dataset.name));
+      });
+    }
+
+    function selectedRatio() {
+      const choice = $("aspectRatio").value;
+      if (choice === "free") return null;
+      if (choice === "original") return state.sourceRatio;
+      if (choice === "custom") {
+        const width = Number($("ratioWidth").value);
+        const height = Number($("ratioHeight").value);
+        return width > 0 && height > 0 ? width / height : null;
+      }
+      const values = choice.split(":").map(Number);
+      return values[0] / values[1];
+    }
+
+    function setInitialCrop() {
+      if (!state.source) return;
+      const ratio = selectedRatio();
+      if (!ratio) {
+        state.crop = {x: 0, y: 0, width: canvas.width, height: canvas.height};
+        return;
+      }
+      let width = canvas.width;
+      let height = width / ratio;
+      if (height > canvas.height) {
+        height = canvas.height;
+        width = height * ratio;
+      }
+      state.crop = {x: (canvas.width - width) / 2, y: (canvas.height - height) / 2, width, height};
+    }
+
+    function updateOutputDimensions() {
+      if (!state.crop || !state.source) return;
+      $("outputWidth").value = Math.max(1, Math.round(state.crop.width * state.source.naturalWidth / canvas.width));
+      $("outputHeight").value = Math.max(1, Math.round(state.crop.height * state.source.naturalHeight / canvas.height));
+    }
+
+    function drawCrop() {
+      if (!state.source || !state.crop) return;
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(state.source, 0, 0, canvas.width, canvas.height);
+      const crop = state.crop;
+      context.fillStyle = "rgba(28, 22, 46, .52)";
+      context.fillRect(0, 0, canvas.width, crop.y);
+      context.fillRect(0, crop.y + crop.height, canvas.width, canvas.height - crop.y - crop.height);
+      context.fillRect(0, crop.y, crop.x, crop.height);
+      context.fillRect(crop.x + crop.width, crop.y, canvas.width - crop.x - crop.width, crop.height);
+      context.strokeStyle = "#7658ee";
+      context.lineWidth = Math.max(2, canvas.width / 500);
+      context.strokeRect(crop.x, crop.y, crop.width, crop.height);
+      const handle = Math.max(6, canvas.width / 90);
+      context.fillStyle = "#fff";
+      context.strokeStyle = "#7658ee";
+      context.lineWidth = Math.max(1, canvas.width / 900);
+      [
+        [crop.x, crop.y], [crop.x + crop.width / 2, crop.y], [crop.x + crop.width, crop.y],
+        [crop.x, crop.y + crop.height / 2], [crop.x + crop.width, crop.y + crop.height / 2],
+        [crop.x, crop.y + crop.height], [crop.x + crop.width / 2, crop.y + crop.height],
+        [crop.x + crop.width, crop.y + crop.height]
+      ].forEach(([x, y]) => {
+        context.beginPath();
+        context.arc(x, y, handle / 2, 0, Math.PI * 2);
+        context.fill();
+        context.stroke();
+      });
+    }
+
+    function canvasPoint(event) {
+      const bounds = canvas.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return {x: 0, y: 0};
+      return {
+        x: Math.max(0, Math.min(canvas.width, (event.clientX - bounds.left) * canvas.width / bounds.width)),
+        y: Math.max(0, Math.min(canvas.height, (event.clientY - bounds.top) * canvas.height / bounds.height))
+      };
+    }
+
+    function dragCrop(point) {
+      const start = state.dragStart;
+      if (!start) return;
+      let width = Math.abs(point.x - start.x);
+      let height = Math.abs(point.y - start.y);
+      const directionX = point.x >= start.x ? 1 : -1;
+      const directionY = point.y >= start.y ? 1 : -1;
+      const ratio = selectedRatio();
+      const maxWidth = directionX > 0 ? canvas.width - start.x : start.x;
+      const maxHeight = directionY > 0 ? canvas.height - start.y : start.y;
+      if (ratio) {
+        width = Math.min(width, height * ratio, maxWidth, maxHeight * ratio);
+        height = width / ratio;
+      } else {
+        width = Math.min(width, maxWidth);
+        height = Math.min(height, maxHeight);
+      }
+      state.crop = {
+        x: directionX > 0 ? start.x : start.x - width,
+        y: directionY > 0 ? start.y : start.y - height,
+        width,
+        height
+      };
+      drawCrop();
+    }
+
+    function cropForRequest() {
+      const scaleX = state.source.naturalWidth / canvas.width;
+      const scaleY = state.source.naturalHeight / canvas.height;
+      const x = Math.round(state.crop.x * scaleX);
+      const y = Math.round(state.crop.y * scaleY);
+      return {
+        x: Math.max(0, x),
+        y: Math.max(0, y),
+        width: Math.max(1, Math.min(state.source.naturalWidth - x, Math.round(state.crop.width * scaleX))),
+        height: Math.max(1, Math.min(state.source.naturalHeight - y, Math.round(state.crop.height * scaleY)))
+      };
+    }
+
+    function editRequestBody(preview) {
+      const width = Number($("outputWidth").value);
+      const height = Number($("outputHeight").value);
+      if (
+        !Number.isInteger(width) || !Number.isInteger(height)
+        || width < 1 || height < 1 || width > 24000 || height > 24000
+        || width * height > 100000000
+      ) {
+        throw new Error("Enter valid output dimensions.");
+      }
+      const previewScale = preview ? Math.min(1, 1000 / Math.max(width, height)) : 1;
+      const removing = $("removeBackground").checked;
+      return {
+        filename: state.selected.name,
+        crop: cropForRequest(),
+        size: {
+          width: Math.max(1, Math.round(width * previewScale)),
+          height: Math.max(1, Math.round(height * previewScale))
+        },
+        format: preview ? (removing ? "png" : "jpeg") : $("outputFormat").value,
+        quality: preview ? 84 : Number($("quality").value),
+        removeBackground: removing,
+        brightness: Number($("brightness").value),
+        contrast: Number($("contrast").value),
+        saturation: Number($("saturation").value),
+        warmth: Number($("warmth").value),
+        sharpness: Number($("sharpness").value),
+        blur: Number($("blur").value),
+        filterPreset: $("filterPreset").value
+      };
+    }
+
+    function scheduleLivePreview() {
+      if (!state.selected || !state.source) return;
+      stopLivePreview();
+      const requestId = state.previewRequestId;
+      $("resultPreview").classList.add("visible");
+      $("resultPlaceholder").hidden = true;
+      $("resultImage").hidden = false;
+      $("resultImage").style.filter = quickPreviewFilter();
+      $("resultMessage").textContent = "Updating live preview…";
+      state.previewTimer = window.setTimeout(() => renderLivePreview(requestId), 220);
+    }
+
+    function quickPreviewFilter() {
+      const preset = $("filterPreset").value;
+      let brightness = Number($("brightness").value);
+      let contrast = Number($("contrast").value);
+      let saturation = Number($("saturation").value);
+      let warmth = Number($("warmth").value);
+      let sharpness = Number($("sharpness").value);
+      let blur = Number($("blur").value);
+      if (preset === "warm") { warmth += 24; saturation *= 1.08; }
+      if (preset === "cool") { warmth -= 24; }
+      if (preset === "vivid") { contrast *= 1.12; saturation *= 1.3; }
+      if (preset === "vintage") { warmth += 18; contrast *= 0.9; saturation *= 0.76; blur += 0.2; }
+      if (preset === "soft") { contrast *= 0.94; saturation *= 0.9; blur += 0.6; }
+      if (sharpness < 100) blur += (100 - sharpness) / 50;
+      if (sharpness > 100) contrast *= 1 + (sharpness - 100) / 285;
+      const filters = [
+        "brightness(" + brightness + "%)",
+        "contrast(" + contrast + "%)",
+        "saturate(" + saturation + "%)"
+      ];
+      if (preset === "mono") filters.push("grayscale(100%)");
+      if (preset === "sepia") filters.push("sepia(100%)");
+      else if (warmth) {
+        filters.push("sepia(" + Math.min(45, Math.abs(warmth) * 0.35) + "%)");
+        filters.push("hue-rotate(" + (warmth > 0 ? "-8deg" : "188deg") + ")");
+      }
+      if (blur) filters.push("blur(" + Math.min(5, blur * 0.25) + "px)");
+      return filters.join(" ");
+    }
+
+    async function renderLivePreview(requestId) {
+      if (requestId !== state.previewRequestId || !state.selected) return;
+      state.previewTimer = null;
+      const controller = new AbortController();
+      state.previewController = controller;
+      try {
+        const response = await fetchLocal("/api/edit", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(editRequestBody(true)),
+          signal: controller.signal
+        });
+        const type = response.headers.get("Content-Type") || "";
+        if (!response.ok) {
+          const error = type.includes("application/json") ? await response.json() : {error: "Live preview failed."};
+          throw new Error(error.error);
+        }
+        if (!type.startsWith("image/")) throw new Error("The live preview did not return an image.");
+        const previewUrl = URL.createObjectURL(await response.blob());
+        if (requestId !== state.previewRequestId) {
+          URL.revokeObjectURL(previewUrl);
+          return;
+        }
+        if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+        state.previewUrl = previewUrl;
+        $("resultImage").src = previewUrl;
+        $("resultImage").style.filter = "none";
+        $("resultMessage").textContent = "Live preview · changes appear as you adjust.";
+        $("editStatus").textContent = "Live preview updated. Apply edits to prepare the download.";
+      } catch (error) {
+        if (error.name === "AbortError" || requestId !== state.previewRequestId) return;
+        $("resultMessage").textContent = "Live preview unavailable.";
+        $("editStatus").textContent = error.message;
+      } finally {
+        if (state.previewController === controller) state.previewController = null;
+      }
+    }
+
+    async function applyEdit() {
+      if (!state.selected) return;
+      stopLivePreview();
+      $("applyEdit").disabled = true;
+      $("downloadEdit").disabled = true;
+      const removing = $("removeBackground").checked;
+      $("editStatus").textContent = removing
+        ? "Running local AI background removal…"
+        : "Applying your edits…";
+      try {
+        const body = editRequestBody(false);
+        const response = await fetchLocal("/api/edit", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(body)
+        });
+        const type = response.headers.get("Content-Type") || "";
+        if (!response.ok) {
+          const error = type.includes("application/json") ? await response.json() : {error: "Edit failed."};
+          throw new Error(error.error);
+        }
+        const blob = await response.blob();
+        const disposition = response.headers.get("Content-Disposition") || "";
+        const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/);
+        state.resultFilename = encodedName ? decodeURIComponent(encodedName[1]) : "edited-image";
+        if (state.resultUrl) URL.revokeObjectURL(state.resultUrl);
+        if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+        state.previewUrl = "";
+        state.resultUrl = URL.createObjectURL(blob);
+        $("resultPreview").classList.add("visible");
+        if (type.includes("pdf")) {
+          $("resultImage").hidden = true;
+          $("resultPlaceholder").hidden = true;
+          $("resultMessage").textContent = "Your PDF is ready to download.";
+        } else {
+          $("resultImage").hidden = false;
+          $("resultPlaceholder").hidden = true;
+          $("resultImage").src = state.resultUrl;
+          $("resultImage").style.filter = "none";
+          $("resultMessage").textContent = state.resultFilename;
+        }
+        $("downloadEdit").disabled = false;
+        $("editStatus").textContent = "Preview ready · original untouched.";
+      } catch (error) {
+        $("editStatus").textContent = error.message;
+      } finally {
+        $("applyEdit").disabled = false;
+      }
+    }
+
+    async function exportPdf() {
+      $("pdfAll").disabled = true;
+      $("status").textContent = "Preparing PDF from the images currently shown…";
+      try {
+        const response = await fetchLocal("/api/pdf", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({filenames: state.visibleImages.map(image => image.name)})
+        });
+        const type = response.headers.get("Content-Type") || "";
+        if (!response.ok) {
+          const error = type.includes("application/json") ? await response.json() : {error: "PDF export failed."};
+          throw new Error(error.error);
+        }
+        const url = URL.createObjectURL(await response.blob());
+        downloadBlob(url, "image-collection.pdf");
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+        $("status").textContent = "PDF exported.";
+      } catch (error) {
+        $("status").textContent = error.message;
+      } finally {
+        $("pdfAll").disabled = state.visibleImages.length === 0;
+      }
+    }
+
+    async function convertDocument() {
+      if (!state.documentFile) return;
+      const outputFormat = $("documentFormat").value;
+      const form = new FormData();
+      form.append("file", state.documentFile, state.documentFile.name);
+      form.append("format", outputFormat);
+      $("convertDocument").disabled = true;
+      $("documentStatus").textContent = "Converting locally…";
+      try {
+        const response = await fetchLocal("/api/document", {method: "POST", body: form});
+        const type = response.headers.get("Content-Type") || "";
+        if (!response.ok) {
+          const error = type.includes("application/json") ? await response.json() : {error: "Document conversion failed."};
+          throw new Error(error.error);
+        }
+        const disposition = response.headers.get("Content-Disposition") || "";
+        const encodedName = disposition.match(/filename\*=UTF-8''([^;]+)/);
+        const filename = encodedName
+          ? decodeURIComponent(encodedName[1])
+          : state.documentFile.name.replace(/\.[^.]+$/, "") + "." + outputFormat;
+        const url = URL.createObjectURL(await response.blob());
+        downloadBlob(url, filename);
+        window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+        $("documentStatus").textContent = "Converted and downloaded " + filename + ".";
+      } catch (error) {
+        $("documentStatus").textContent = error.message;
+      } finally {
+        $("convertDocument").disabled = !state.documentFile;
+      }
+    }
+
+    function setView(view) {
+      const documents = view === "documents";
+      const guide = view === "guide";
+      const adjust = view === "adjust";
+      const nextLibraryMode = view === "similar" ? "similar" : "all";
+      if (view !== "similar") {
+        state.selectionMode = false;
+        state.selectedForDeletion.clear();
+      }
+      if ((view !== "images" && view !== "similar") || state.libraryMode !== nextLibraryMode) {
+        state.downloadSelectionMode = false;
+        state.selectedForDownload.clear();
+      }
+      $("documentPage").hidden = !documents;
+      $("guidePage").hidden = !guide;
+      $("imagePage").hidden = documents || guide;
+      $("imagePage").querySelector(".workspace").classList.toggle("editor-first", adjust);
+      $("topActions").hidden = documents || guide;
+      $("assetsPanel").hidden = documents || guide || adjust;
+      $("inspector").hidden = documents || guide || !adjust;
+      [["imagesTab", view === "images"], ["similarTab", view === "similar"],
+        ["adjustTab", adjust], ["documentsTab", documents], ["guideTab", guide]]
+        .forEach(([id, active]) => {
+          const tab = $(id);
+          tab.classList.toggle("active", active);
+          if (active) tab.setAttribute("aria-current", "page");
+          else tab.removeAttribute("aria-current");
+        });
+      if (!documents && !guide && !adjust) {
+        state.libraryMode = nextLibraryMode;
+        renderGroups();
+      }
+      if (state.source && !guide && !documents) requestAnimationFrame(fitCanvasToStage);
+    }
+
+    function downloadBlob(url, filename) {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function updateAdjustmentReadouts() {
+      ["brightness", "contrast", "saturation", "sharpness"].forEach(id => {
+        $(id + "Value").textContent = $(id).value + "%";
+      });
+      $("warmthValue").textContent = $("warmth").value;
+      const blur = Number($("blur").value);
+      $("blurValue").textContent = (Number.isInteger(blur) ? blur : blur.toFixed(1)) + " px";
+    }
+
+    function setDefaultAdjustmentValues() {
+      ["brightness", "contrast", "saturation", "sharpness"].forEach(id => $(id).value = "100");
+      $("warmth").value = "0";
+      $("blur").value = "0";
+      $("filterPreset").value = "none";
+      updateAdjustmentReadouts();
+    }
+
+    function markEditsDirty(message) {
+      if (!state.selected) return;
+      $("downloadEdit").disabled = true;
+      $("editStatus").textContent = message || "Updating the live preview…";
+      scheduleLivePreview();
+    }
+
+    function resetAdjustments() {
+      if (!state.selected) return;
+      setDefaultAdjustmentValues();
+      markEditsDirty("Adjustments reset. Updating the preview…");
+    }
+
+    function resetCrop() {
+      if (!state.source) return;
+      $("aspectRatio").value = "free";
+      $("customRatio").classList.remove("visible");
+      setInitialCrop();
+      updateOutputDimensions();
+      drawCrop();
+      markEditsDirty("Crop reset. Updating the preview…");
+    }
+
+    $("chooseImages").onclick = $("emptyUpload").onclick = () => $("imageUpload").click();
+    $("chooseFolder").onclick = () => $("folderUpload").click();
+    $("imagesTab").onclick = () => setView("images");
+    $("similarTab").onclick = () => setView("similar");
+    $("clearLibrary").onclick = () => deleteSelectedImages(true);
+    $("adjustTab").onclick = () => setView("adjust");
+    $("documentsTab").onclick = () => setView("documents");
+    $("guideTab").onclick = () => setView("guide");
+    $("guideUploadButton").onclick = () => $("imageUpload").click();
+    $("guideFolderButton").onclick = () => $("folderUpload").click();
+    $("resetCropToolbar").onclick = resetCrop;
+    $("chooseDocument").onclick = () => $("documentUpload").click();
+    $("selectDuplicates").onclick = selectSimilarExtras;
+    $("startDownloadSelection").onclick = startDownloadSelection;
+    $("startDeleteSelection").onclick = startDeleteSelection;
+    $("downloadSelected").onclick = downloadSelectedImages;
+    $("cancelDownloadSelection").onclick = () => {
+      state.downloadSelectionMode = false;
+      state.selectedForDownload.clear();
+      renderGroups();
+    };
+    $("deleteSelected").onclick = deleteSelectedImages;
+    $("cancelDeleteSelection").onclick = () => {
+      state.selectionMode = false;
+      state.selectedForDeletion.clear();
+      renderGroups();
+    };
+    $("documentUpload").onchange = event => {
+      state.documentFile = event.target.files[0] || null;
+      event.target.value = "";
+      $("documentName").textContent = state.documentFile
+        ? "Selected file: " + state.documentFile.name
+        : "No file selected — choose a PDF, DOC, or DOCX.";
+      $("documentName").classList.toggle("empty", !state.documentFile);
+      $("chooseDocument").textContent = state.documentFile ? "Replace selected file" : "Choose PDF or Word file";
+      $("documentFormat").disabled = !state.documentFile;
+      $("convertDocument").disabled = !state.documentFile;
+      if (state.documentFile) {
+        const extension = state.documentFile.name.split(".").pop().toLowerCase();
+        $("documentFormat").value = extension === "pdf" ? "docx" : "pdf";
+        $("documentStatus").textContent = "Ready: " + extension.toUpperCase() + " → " +
+          $("documentFormat").value.toUpperCase() + ".";
+      } else {
+        $("documentStatus").textContent = "";
+      }
+    };
+    $("convertDocument").onclick = convertDocument;
+    $("imageUpload").onchange = event => {
+      uploadFiles(Array.from(event.target.files));
+      event.target.value = "";
+    };
+    $("folderUpload").onchange = event => {
+      uploadFiles(Array.from(event.target.files));
+      event.target.value = "";
+    };
+    $("download").onclick = () => {
+      if (state.directory) window.location.href = "/api/download?directory=" + encodeURIComponent(state.directory);
+    };
+    $("pdfAll").onclick = exportPdf;
+    $("search").oninput = () => {
+      if (state.selectionMode) {
+        state.selectionMode = false;
+        state.selectedForDeletion.clear();
+      }
+      if (state.downloadSelectionMode) {
+        state.downloadSelectionMode = false;
+        state.selectedForDownload.clear();
+      }
+      renderGroups();
+    };
+    $("closeEditor").onclick = clearEditor;
+    $("cancelEdit").onclick = resetCrop;
+    $("applyEdit").onclick = applyEdit;
+    $("downloadEdit").onclick = () => {
+      if (state.resultUrl) downloadBlob(state.resultUrl, state.resultFilename);
+    };
+    window.addEventListener("resize", fitCanvasToStage);
+    ["brightness", "contrast", "saturation", "warmth", "sharpness", "blur"].forEach(id => {
+      $(id).oninput = () => {
+        updateAdjustmentReadouts();
+        markEditsDirty();
+      };
+    });
+    $("filterPreset").onchange = () => markEditsDirty();
+    $("resetAdjustments").onclick = resetAdjustments;
+    $("aspectRatio").onchange = () => {
+      $("customRatio").classList.toggle("visible", $("aspectRatio").value === "custom");
+      setInitialCrop();
+      updateOutputDimensions();
+      drawCrop();
+      markEditsDirty();
+    };
+    $("ratioWidth").oninput = $("ratioHeight").oninput = () => {
+      if ($("aspectRatio").value === "custom") {
+        setInitialCrop();
+        updateOutputDimensions();
+        drawCrop();
+        markEditsDirty();
+      }
+    };
+    $("outputWidth").oninput = () => {
+      if ($("lockRatio").checked && state.crop) {
+        $("outputHeight").value = Math.max(1, Math.round(Number($("outputWidth").value) / (state.crop.width / state.crop.height)));
+      }
+      markEditsDirty();
+    };
+    $("outputHeight").oninput = () => {
+      if ($("lockRatio").checked && state.crop) {
+        $("outputWidth").value = Math.max(1, Math.round(Number($("outputHeight").value) * (state.crop.width / state.crop.height)));
+      }
+      markEditsDirty();
+    };
+    $("lockRatio").onchange = () => markEditsDirty();
+    $("quality").oninput = () => {
+      $("qualityValue").textContent = $("quality").value + "%";
+      markEditsDirty();
+    };
+    $("outputFormat").onchange = () => {
+      $("quality").disabled = !["jpeg", "webp"].includes($("outputFormat").value);
+      if ($("removeBackground").checked && ["jpeg", "bmp", "pdf"].includes($("outputFormat").value)) {
+        $("outputFormat").value = "png";
+        $("quality").disabled = true;
+      }
+      markEditsDirty();
+    };
+    $("removeBackground").onchange = () => {
+      if ($("removeBackground").checked && ["jpeg", "bmp", "pdf"].includes($("outputFormat").value)) {
+        $("outputFormat").value = "png";
+        $("quality").disabled = true;
+      }
+      markEditsDirty();
+    };
+    canvas.addEventListener("pointerdown", event => {
+      if (!state.source || state.dragPointerId !== null) return;
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
+      canvas.setPointerCapture(event.pointerId);
+      state.dragPointerId = event.pointerId;
+      state.dragStart = canvasPoint(event);
+      state.crop = {x: state.dragStart.x, y: state.dragStart.y, width: 0, height: 0};
+      $("editStatus").textContent = "Drag to select the crop area…";
+    });
+    canvas.addEventListener("pointermove", event => {
+      if (state.dragPointerId === event.pointerId && state.dragStart) dragCrop(canvasPoint(event));
+    });
+    canvas.addEventListener("pointerup", event => {
+      if (state.dragPointerId !== event.pointerId || !state.dragStart) return;
+      dragCrop(canvasPoint(event));
+      state.dragStart = null;
+      state.dragPointerId = null;
+      if (state.crop.width < 1 || state.crop.height < 1) setInitialCrop();
+      updateOutputDimensions();
+      drawCrop();
+      markEditsDirty("Crop selected. Updating the preview…");
+    });
+    canvas.addEventListener("pointercancel", event => {
+      if (state.dragPointerId !== event.pointerId) return;
+      state.dragStart = null;
+      state.dragPointerId = null;
+      setInitialCrop();
+      updateOutputDimensions();
+      drawCrop();
+      markEditsDirty("Crop cancelled. Drag again or wait for the preview to refresh.");
+    });
+    canvas.addEventListener("lostpointercapture", event => {
+      if (state.dragPointerId !== event.pointerId) return;
+      state.dragStart = null;
+      state.dragPointerId = null;
+      setInitialCrop();
+      updateOutputDimensions();
+      drawCrop();
+      $("editStatus").textContent = "Crop cancelled. Drag again to choose a crop.";
+    });
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") clearEditor();
+    });
+
+    checkAuth();
+  </script>
+</body>
+</html>
